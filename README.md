@@ -174,5 +174,5 @@ stack exec test-addition
 stack exec test-append
 
 # Run S-expression unification tests
-stack exec run-tests
+stack exec test-unify
 ```
