@@ -1,4 +1,4 @@
-# GenRMC - Generic Relational Model Checking
+# GenRMC - Generic Relational Programming in Haskell
 
 A Haskell library for relational programming with pluggable state-set representations and constraint systems. Intended to demonstrate a minimal, usable basis for relational programming that's generic over things like search strategy and state-superposition representation. A generalization of the relational machine calculus.
 
