@@ -36,8 +36,8 @@ test-suite genrmc-test
     free
   default-language: Haskell2010
 
-executable genrmc-examples
-  main-is:          Examples.hs
+executable test-addition
+  main-is:          TestAddition.hs
   hs-source-dirs:   app
   build-depends:
     base,
@@ -52,4 +52,15 @@ executable test-append
     GenRMC,
     containers,
     free
+  default-language: Haskell2010
+  
+executable test-unify
+  main-is:          TestUnify.hs
+  hs-source-dirs:   app
+  build-depends:
+    base,
+    GenRMC,
+    containers,
+    free,
+    hspec
   default-language: Haskell2010

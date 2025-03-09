@@ -10,7 +10,6 @@
 module GenRMC.Types where
 
 import Control.Monad.Free
-import Control.Monad.State
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
@@ -65,12 +64,12 @@ class (Monoid p) => Prop f n p | p -> f n where
 -- | Sup represents a set of states in our execution
 class (Monoid s) => Sup f n p s | s -> f n p where
   -- empty and mappend are inherited from Monoid
-  singleton :: Free f n -> [Prog f n p] -> p -> s
+  singleton :: n -> Free f n -> [Prog f n p] -> p -> s
   -- | Extract a state and the rest of the states
-  extract :: s -> Maybe ((Free f n, [Prog f n p], p), s)
+  extract :: s -> Maybe ((n, Free f n, [Prog f n p], p), s)
   -- | Execute a step and process results
   fullStep :: (Ord n, Enum n) 
-           => (Free f n -> [Prog f n p] -> p -> GenSym n s)
+           => (n -> Free f n -> [Prog f n p] -> p -> s)
            -> s
            -> (Maybe (Free f n, p), s)
   
@@ -80,21 +79,6 @@ class (Monoid s) => Sup f n p s | s -> f n p where
   
   union :: s -> s -> s
   union = mappend
-
--- | GenSym monad for generating fresh variable names
-newtype GenSym n a = GenSym { runGenSym :: State n a }
-  deriving (Functor, Applicative, Monad)
-
--- | Generate a fresh variable
-fresh :: (Enum n) => GenSym n n
-fresh = GenSym $ do
-  n <- get
-  put (succ n)
-  return n
-
--- | Run the GenSym monad with an initial name
-runGenSymWith :: n -> GenSym n a -> a
-runGenSymWith seed (GenSym m) = evalState m seed
 
 -- Utilities for substitution
 substProg :: (Ord n, Functor f, Prop f n p) => Map n (Free f n) -> Prog f n p -> Prog f n p

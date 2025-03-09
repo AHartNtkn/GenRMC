@@ -4,9 +4,6 @@ module GenRMC
     Prog(..)
   , Prop(..)
   , Sup(..)
-  , GenSym
-  , fresh
-  , runGenSymWith
     -- * Core functions
   , step
   , run

@@ -16,15 +16,15 @@ main = do
   putStrLn "=== GenRMC Examples ==="
   
   putStrLn "\n1. Computing 2 + 3:"
-  displayResults $ (runProgramPair (s (s z), s (s (s z))) additionEx2 :: [SExp Int])
+  displayResults (runProgram (cons (s (s z)) (s (s (s z)))) additionEx2 :: [SExp Int])
   
   putStrLn "\n2. What numbers add up to 5? (using dual relation):"
-  displayResults $ (runProgram (s (s (s (s (s z))))) (dual additionEx2) :: [SExp Int])
+  displayResults (runProgram (s (s (s (s (s z))))) (dual additionEx2) :: [SExp Int])
   
   putStrLn "\n3. Addition using polytypic hylomorphism (2 + 3):"
-  displayResults $ (runProgram (cons (s (s z)) (s (s (s z)))) additionEx3 :: [SExp Int])
+  displayResults (runProgram (cons (s (s z)) (s (s (s z)))) additionEx3 :: [SExp Int])
 
   putStrLn "\n4. What numbers add up to 5 using polytypic hylomorphism?:"
-  displayResults $ (runProgram (s (s (s (s (s z))))) (dual additionEx3) :: [SExp Int])
+  displayResults (runProgram (s (s (s (s (s z))))) (dual additionEx3) :: [SExp Int])
   
   putStrLn "\nDone."

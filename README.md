@@ -159,11 +159,20 @@ splits = runProgram output (dual appendProg)
 ## Installation
 
 ```
-cabal install
+stack build
 ```
 
-## Running Tests
+## Running Test
+
+Several example executables are available to demonstrate the library's capabilities:
 
 ```
-cabal test
+# Run addition examples
+stack exec test-addition
+
+# Run append examples
+stack exec test-append
+
+# Run S-expression unification tests
+stack exec run-tests
 ```

@@ -24,9 +24,9 @@ s n = cons (atom "s") n
 additionEx2 :: (Ord n, Enum n) => Prog SExpF n (SExpProp n)
 additionEx2 = Fp $ \self ->
   Or
-    (Ex $ \b -> Map (list [z, var b]) (var b)) -- 0 + b = b
+    (Ex $ \b -> Map (cons z (var b)) (var b)) -- 0 + b = b
     (Comp
-      (Ex $ \a -> Ex $ \b -> Map (list [s (var a), var b]) (list [var a, var b])) -- s(a) + b = (a, b)
+      (Ex $ \a -> Ex $ \b -> Map (cons (s (var a)) (var b)) (cons (var a) (var b))) -- s(a) + b = (a, b)
       (Comp
         self -- recursive call with (a, b)
         (Ex $ \a -> Map (var a) (s (var a)))) -- result a becomes s(a)
@@ -34,7 +34,7 @@ additionEx2 = Fp $ \self ->
 
 -- | Run the program with input and show all results
 runProgram :: (Ord n, Enum n) => SExp n -> Prog SExpF n (SExpProp n) -> [SExp n]
-runProgram input prog = map fst $ run (mempty :: ListSup SExpF n (SExpProp n)) input prog
+runProgram input prog = map fst $ run (mempty :: ListSup SExpF n (SExpProp n)) (toEnum 0) input prog
 
 -- | Run the program with input pair and show all results
 runProgramPair :: (Ord n, Enum n) => (SExp n, SExp n) -> Prog SExpF n (SExpProp n) -> [SExp n]

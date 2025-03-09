@@ -72,8 +72,8 @@ main = hspec $ do
                             list [atom "c", nil],
                             var 0]) 
                       (var 0)
-          initial = singleton (var 0) [] mempty :: ListSup SExpF Int (SExpProp Int)
-          results = take 1 $ run initial (var 0) (Comp appendProg (Comp query Star))
+          initial = singleton 0 (var 0) [] mempty :: ListSup SExpF Int (SExpProp Int)
+          results = take 1 $ run initial 0 (var 0) (Comp appendProg (Comp query Star))
       length results `shouldBe` 1
       let expected = list [atom "a", list [atom "b", list [atom "c", nil]]]
       fst (head results) `shouldBe` expected
