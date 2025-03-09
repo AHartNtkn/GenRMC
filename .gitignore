@@ -1,0 +1,22 @@
+# Stack build files
+.stack-work/
+dist-newstyle/
+dist/
+
+# Cabal build files
+*.hi
+*.o
+*.dyn_hi
+*.dyn_o
+
+# Temp files
+*~
+*.swp
+*.swo
+
+# Binary files
+*.bin
+*.exe
+
+# NodeJS files (there's a package-lock.json)
+node_modules/
