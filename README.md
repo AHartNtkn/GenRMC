@@ -61,12 +61,12 @@ An example implementation of addition on natural numbers (using Peano encoding):
 additionEx2 :: (Ord n, Enum n) => Prog SExpF n (SExpProp n)
 additionEx2 = Fp $ \self ->
   Or
-    (Ex $ \b -> Map (list [z, var b]) (var b))  -- 0 + b = b
+    (Ex $ \b -> Map (cons z (var b)) (var b)) -- 0 + b = b
     (Comp
-      (Ex $ \a -> Ex $ \b -> Map (list [s (var a), var b]) (list [var a, var b]))  -- s(a) + b = (a, b)
+      (Ex $ \a -> Ex $ \b -> Map (cons (s (var a)) (var b)) (cons (var a) (var b))) -- s(a) + b = (a, b)
       (Comp
-        self  -- recursive call with (a, b)
-        (Ex $ \a -> Map (var a) (s (var a)))))  -- result a becomes s(a)
+        self -- recursive call with (a, b)
+        (Ex $ \a -> Map (var a) (s (var a))))) -- result a becomes s(a)
 ```
 
 Running forward computes the sum:
