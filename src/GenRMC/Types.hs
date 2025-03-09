@@ -26,12 +26,15 @@ data Prog f n p
   | Cstr p
 
 -- | Helper to create existential quantification over n variables
+-- Returns a list of variables to the continuation
 exN :: (Ord n) => Int -> ([n] -> Prog f n p) -> Prog f n p
-exN n f = go [] n
+exN n f 
+  | n <= 0 = error "exN requires at least 1 variable"
+  | otherwise = Ex $ \x -> go [x] (n-1)
   where
-    go vars 0 = f (reverse vars)
-    go vars k | k > 0 = Ex $ \x -> go (x:vars) (k-1)
-    go vars _ = f (reverse vars)  -- Handle invalid negative count gracefully
+    go vars 0 = f vars
+    go vars k | k > 0 = Ex $ \x -> go (x : vars) (k-1)
+    go vars _ = f vars
 
 -- | Compute the dual of a program
 dual :: Prog f n p -> Prog f n p

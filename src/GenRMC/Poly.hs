@@ -3,6 +3,7 @@
 
 module GenRMC.Poly where
 
+
 import GenRMC.Types
 import GenRMC.SExp
 import GenRMC.Examples (z, s, runProgram)
@@ -17,8 +18,8 @@ data Poly
 
 -- | Constructors for injecting into sum types
 in1, in2 :: Ord n => SExp n -> SExp n
-in1 x = list [atom "in1", x]
-in2 x = list [atom "in2", x]
+in1 = cons (atom "in1")
+in2 = cons (atom "in2")
 
 -- | Generate a polytypic map based on a polynomial functor
 polyMap :: Ord n => Poly -> Prog SExpF n (SExpProp n) -> Prog SExpF n (SExpProp n)
@@ -31,21 +32,27 @@ polyMap (Sum xs) f =
       -- Create a branch for each injection
       branches = zipWith (\inj poly -> 
         Comp
-          (Ex $ \a -> Map (list [inj, var a]) (var a))
+          (Ex $ \a -> Map (cons inj (var a)) (var a))
           (Comp
             (polyMap poly f)
-            (Ex $ \a -> Map (var a) (list [inj, var a])))
+            (Ex $ \a -> Map (var a) (cons inj (var a))))
         ) injs xs
   in foldr1 Or branches
-polyMap (Prod xs) f =
-  exN (2 * length xs) $ \vars -> 
-    let n = length xs
+polyMap (Prod ps) f =
+  exN (2 * length ps) $ \vars -> 
+    let n = length ps
         -- Split the variables into input and output vars
-        aVars = take n vars               -- Input variables (a1$, a2$, etc.)
-        aaVars = drop n vars              -- Output variables (aa1$, aa2$, etc.)
+        aVars = take n vars              -- Input variables (a1$, a2$, etc.)
+        aaVars = drop n vars             -- Output variables (aa1$, aa2$, etc.)
         
-        -- Initial step: map from tuple of variables to first var
-        initialStep = Map (list (map var aVars)) (var (head aVars))
+        -- Build a nested cons structure from a list of variables
+        buildNestedCons :: [n] -> SExp n
+        buildNestedCons [] = error "buildNestedCons: empty list"
+        buildNestedCons [x] = var x
+        buildNestedCons (x:xs) = cons (var x) (buildNestedCons xs)
+        
+        -- Initial step: map from cons structure of vars to first var
+        initialStep = Map (buildNestedCons aVars) (var (head aVars))
         
         -- Middle steps: process each element and map to next var
         middleSteps = zipWith3 
@@ -54,14 +61,14 @@ polyMap (Prod xs) f =
                     (polyMap poly f)
                     (Map (var outVar) (var inVar))
             ) 
-            (init xs)            -- All but the last polynomial
-            (tail aVars)         -- a2$, a3$, etc. (all but first input var)
-            (init aaVars)        -- aa1$, aa2$, etc. (all but last output var)
+            (init ps)                  -- All but the last polynomial
+            (tail aVars)               -- a2$, a3$, etc. (all but first input var)
+            (init aaVars)              -- aa1$, aa2$, etc. (all but last output var)
         
-        -- Final step: last polynomial and map to the tuple of all output vars
+        -- Final step: last polynomial and map to the structure of output vars
         finalStep = Comp
-            (polyMap (last xs) f)
-            (Map (var (last aaVars)) (list (map var aaVars)))
+            (polyMap (last ps) f)
+            (Map (var (last aaVars)) (buildNestedCons aaVars))
         
         -- Chain everything together with composition
         composedSteps = foldr Comp finalStep (initialStep : middleSteps)
@@ -75,8 +82,8 @@ hylo poly coalg alg = Fp $ \self -> Comp coalg (Comp (polyMap poly self) alg)
 -- | Coalgebra for addition
 addCoalg :: Ord n => Prog SExpF n (SExpProp n)
 addCoalg = Or
-  (Ex $ \b -> Map (list [atom "z", var b]) (in1 (var b)))
-  (Ex $ \a -> Ex $ \b -> Map (list [s (var a), var b]) (in2 (list [var a, var b])))
+  (Ex $ \b -> Map (cons z (var b)) (in1 (var b)))
+  (Ex $ \a -> Ex $ \b -> Map (cons (s (var a)) (var b)) (in2 (cons (var a) (var b))))
 
 -- | Algebra for addition
 addAlg :: Ord n => Prog SExpF n (SExpProp n)
@@ -90,5 +97,5 @@ additionEx3 = hylo (Sum [C, X]) addCoalg addAlg
 
 -- | Test the addition example with specific inputs
 testAddition :: (Enum n, Ord n) => [SExp n]
-testAddition = runProgram (list [s (s z), s (s (s z))]) additionEx3
+testAddition = runProgram (cons (s (s z)) (s (s (s z)))) additionEx3
 -- Should compute 2 + 3 = 5

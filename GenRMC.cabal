@@ -31,7 +31,9 @@ test-suite genrmc-test
   build-depends:
     base,
     GenRMC,
-    hspec
+    hspec,
+    containers,
+    free
   default-language: Haskell2010
 
 executable genrmc-examples
@@ -40,4 +42,14 @@ executable genrmc-examples
   build-depends:
     base,
     GenRMC
+  default-language: Haskell2010
+
+executable test-append
+  main-is:          TestAppend.hs
+  hs-source-dirs:   app
+  build-depends:
+    base,
+    GenRMC,
+    containers,
+    free
   default-language: Haskell2010

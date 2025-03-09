@@ -100,8 +100,8 @@ For example, addition can be defined as a hylomorphism over `Sum [C, X]`:
 ```haskell
 -- Coalgebra for addition
 addCoalg = Or
-  (Ex $ \b -> Map (list [z, var b]) (in1 (var b)))
-  (Ex $ \a -> Ex $ \b -> Map (list [s (var a), var b]) (in2 (list [var a, var b])))
+  (Ex $ \b -> Map (cons z (var b)) (in1 (var b)))
+  (Ex $ \a -> Ex $ \b -> Map (cons (s (var a)) (var b)) (in2 (cons (var a) (var b))))
 
 -- Algebra for addition
 addAlg = Or
@@ -112,7 +112,7 @@ addAlg = Or
 additionEx3 = hylo (Sum [C, X]) addCoalg addAlg
 
 -- Test: compute 2 + 3
-runProgram (list [s (s z), s (s (s z))]) additionEx3
+runProgram (cons (s (s z)) (s (s (s z)))) additionEx3
 -- Result: [s (s (s (s (s z))))]  -- 5
 ```
 
@@ -122,29 +122,38 @@ runProgram (list [s (s z), s (s (s z))]) additionEx3
 import GenRMC
 
 -- Define an append relation for lists
-appendProg :: Eq n => Prog SExpF n
-appendProg = Ex $ \out -> 
-  Ex $ \xs ->
-  Ex $ \ys ->
+-- appendProg represents append(xs, ys, zs) where xs ++ ys = zs
+appendProg :: Ord n => Prog SExpF n (SExpProp n)
+appendProg = Fp $ \self -> 
   Or
-    (Comp 
-      (Map (list [atom "nil", var ys, var ys]) (var out))
-      Star)
+    -- Base case: nil ++ ys = ys
+    (Ex $ \ys ->
+     Map (cons nil (var ys)) (var ys))
+    
+    -- Recursive case: (x:xs') ++ ys = x:(xs' ++ ys)
     (Ex $ \x ->
      Ex $ \xs' ->
-     Ex $ \zs ->
+     Ex $ \ys ->
      Comp
-       (Map (list [list [var x, var xs'], var ys, list [var x, var zs]]) (var out))
-       (Comp (appendProg `substIn` [(out, list [var xs', var ys, var zs])]) Star))
+       -- Deconstruct the input: from (x:xs', ys) to (xs', ys)
+       (Map (cons (cons (var x) (var xs')) (var ys)) (cons (var xs') (var ys)))
+       (Comp
+         -- Run recursive call on (xs', ys)
+         self
+         -- Construct the output: from result of (xs' ++ ys) to x:(xs' ++ ys) 
+         (Ex $ \rest ->
+           Map (var rest) (cons (var x) (var rest))))))
 
--- Run a query
-query = Map (list [list [atom "a", list [atom "b", atom "nil"]], 
-                  list [atom "c", atom "nil"],
-                  var 0]) 
-            (var 0)
+-- Run a query to append [a, b] and [c]
+xs = list [atom "a", atom "b"] :: SExp Int
+ys = list [atom "c"] :: SExp Int
+results = runProgramPair (xs, ys) appendProg
+-- Result: [list [atom "a", atom "b", atom "c"]]
 
-results = take 1 $ run (var 0) (Comp appendProg (Comp query Star))
--- Results: [list [atom "a", list [atom "b", list [atom "c", atom "nil"]]]]
+-- Finding all ways to split [a, b, c] into two lists
+output = list [atom "a", atom "b", atom "c"] :: SExp Int
+splits = runProgram output (dual appendProg)
+-- Results: [(nil,[a,b,c]), ([a],[b,c]), ([a,b],[c]), ([a,b,c],nil)]
 ```
 
 ## Installation
