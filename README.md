@@ -50,9 +50,24 @@ An example implementation of addition on natural numbers (using Peano encoding):
 - `z` represents zero
 - `s[n]` represents the successor of n
 
-The `additionEx2` relation defines addition with the rules:
-- 0 + b = b
-- s(a) + b = s(a + b)
+#### Direct Implementation (additionEx2)
+
+```haskell
+-- | Addition relation example
+-- additionEx2 implements a relation where:
+-- - add(a, b, c) means a + b = c
+-- Base case: 0 + b = b
+-- Recursion: s(a) + b = s(a + b)
+additionEx2 :: (Ord n, Enum n) => Prog SExpF n (SExpProp n)
+additionEx2 = Fp $ \self ->
+  Or
+    (Ex $ \b -> Map (list [z, var b]) (var b))  -- 0 + b = b
+    (Comp
+      (Ex $ \a -> Ex $ \b -> Map (list [s (var a), var b]) (list [var a, var b]))  -- s(a) + b = (a, b)
+      (Comp
+        self  -- recursive call with (a, b)
+        (Ex $ \a -> Map (var a) (s (var a)))))  -- result a becomes s(a)
+```
 
 Running forward computes the sum:
 ```haskell
@@ -85,7 +100,7 @@ For example, addition can be defined as a hylomorphism over `Sum [C, X]`:
 ```haskell
 -- Coalgebra for addition
 addCoalg = Or
-  (Ex $ \b -> Map (list [atom "z", var b]) (in1 (var b)))
+  (Ex $ \b -> Map (list [z, var b]) (in1 (var b)))
   (Ex $ \a -> Ex $ \b -> Map (list [s (var a), var b]) (in2 (list [var a, var b])))
 
 -- Algebra for addition
