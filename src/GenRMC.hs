@@ -10,14 +10,14 @@ module GenRMC
   , dual
   , substProg
   , substData
+  , DFSSup(..)
+  , BFSSup(..)
+  , InterleavingSup(..)
     -- * S-expression example
   , SExpF(..)
   , SExp
   , SExpProp(..)
   , Equation(..)
-  , DFSSup(..)
-  , BFSSup(..)
-  , InterleavingSup(..)
   , atom
   , list
   , var
