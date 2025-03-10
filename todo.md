@@ -1,0 +1,7 @@
+I would like to change how constraints are handled. Currently, during constraint normalization, a substitution map is generated, and it's expected that the normalizer will seek to eliminate variables. When they are eliminated from the constraint, a substitution map is returned which can be used to remove the variables from the whole program.
+
+The main issue with this is that it makes constraint handling less flexible. For example, we'd have trouble adding constraints in parellel, which is likely something I'd like to do in the future. It also leads to the inefficiency of having to repeatedly scan over the program to remove variables.
+
+Instead, I'd like constraint handling to be aware of what variables still exist in a program. As variables are eliminated from the program, the constraint is notified that the variable can be removed. During normalization, the constraint checker will try to eliminate the variable (which may not be possible, depending on the logic and constraints). If it's impossible, the constraint is left in place, and the pending variables remain so that the next step of normalization can try again. If possible, the constraint is modified to remove the variable, and, since the variable was already eliminated by program execution, there's nothing more to do with the program.
+
+The main question is how to keep track of what variables still exist in a program. I see no obvious way to do this.
