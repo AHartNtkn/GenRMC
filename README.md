@@ -71,15 +71,23 @@ additionEx2 = Fp $ \self ->
 
 Running forward computes the sum:
 ```haskell
-runProgramPair (s (s z), s (s (s z))) additionEx2
+runDFS (cons (s (s z)) (s (s (s z)))) additionEx2
 -- Result: [s (s (s (s (s z))))]  -- 2 + 3 = 5
 ```
 
 Running the dual relation computes all pairs that sum to a given number:
 ```haskell
-runProgram (s (s (s (s (s z))))) (dual additionEx2)
+runDFS (s (s (s (s (s z))))) (dual additionEx2)
 -- Results: [(0,5), (1,4), (2,3), (3,2), (4,1), (5,0)]
 ```
+
+Notice the `runDFS` function, which applies a depth-first search strategy. There are other strategies available:
+
+- `runBFS` - breadth-first search
+- `runInterleaving` - minikanren-style interleaving search
+- More in the future?
+
+The systems are interchangable.
 
 ### Polytypic Hylomorphisms
 
@@ -112,7 +120,7 @@ addAlg = Or
 additionEx3 = hylo (Sum [C, X]) addCoalg addAlg
 
 -- Test: compute 2 + 3
-runProgram (cons (s (s z)) (s (s (s z)))) additionEx3
+runDFS (cons (s (s z)) (s (s (s z)))) additionEx3
 -- Result: [s (s (s (s (s z))))]  -- 5
 ```
 
@@ -147,12 +155,12 @@ appendProg = Fp $ \self ->
 -- Run a query to append [a, b] and [c]
 xs = list [atom "a", atom "b"] :: SExp Int
 ys = list [atom "c"] :: SExp Int
-results = runProgramPair (xs, ys) appendProg
+results = runDFS (cons xs ys) appendProg
 -- Result: [list [atom "a", atom "b", atom "c"]]
 
 -- Finding all ways to split [a, b, c] into two lists
 output = list [atom "a", atom "b", atom "c"] :: SExp Int
-splits = runProgram output (dual appendProg)
+splits = runDFS output (dual appendProg)
 -- Results: [(nil,[a,b,c]), ([a],[b,c]), ([a,b],[c]), ([a,b,c],nil)]
 ```
 
