@@ -81,11 +81,7 @@ instance Monoid (SExpProp n) where
   mempty = SExpProp []
 
 -- Make SExpProp an instance of Prop
-instance Ord n => Prop SExpF n (SExpProp n) where
-  true = SExpProp []
-  
-  andProp (SExpProp eqs1) (SExpProp eqs2) = SExpProp (eqs1 ++ eqs2)
-  
+instance Ord n => Prop SExpF n (SExpProp n) where  
   unify t1 t2 = [SExpProp [Equation t1 t2]]
   
   normalize (SExpProp eqs) = normalizeEquations eqs
@@ -99,7 +95,7 @@ normalizeEquations :: Ord n => [Equation n] -> [(SExpProp n, Map n (SExp n))]
 normalizeEquations eqs =
   case orientEquations eqs of
     Left _ -> []  -- Inconsistent equations
-    Right subst -> [(SExpProp [], subst)]
+    Right subst -> [(true, subst)]
 
 -- | Orient equations into a substitution map
 orientEquations :: Ord n => [Equation n] -> Either String (Map n (SExp n))

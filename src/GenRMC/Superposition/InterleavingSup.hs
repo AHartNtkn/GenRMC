@@ -43,7 +43,6 @@ instance Sup f n p (InterleavingSup f n p) where
   singleton nextSym d ps cs = InterleavingSup [Leaf nextSym d ps cs]
   
   -- Interleaving search strategy is defined here
-  fullStep :: (Ord n, Enum n) => (n -> Free f n -> [Prog f n p] -> p -> InterleavingSup f n p) -> InterleavingSup f n p -> (Maybe (Free f n, p), InterleavingSup f n p)
   fullStep _ (InterleavingSup []) = (Nothing, InterleavingSup [])
   fullStep stepFn (InterleavingSup trees) = walk trees
     where
