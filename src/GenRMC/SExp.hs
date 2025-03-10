@@ -106,6 +106,10 @@ orientEquations = foldl addEquation (Right Map.empty)
       let t1' = substData subst e1
           t2' = substData subst e2
       in case (t1', t2') of
+        (Pure v1, Pure v2) -> 
+          if v1 == v2
+            then Right subst
+            else Right (Map.insert v1 (Pure v2) subst)
         (Pure v1, t) -> 
           if occursCheck v1 t
             then Left "Occurs check failed"
@@ -124,12 +128,9 @@ orientEquations = foldl addEquation (Right Map.empty)
 
 -- | Check if a variable occurs in a term
 occursCheck :: Ord n => n -> SExp n -> Bool
-occursCheck v = go
-  where
-    go (Pure v') = v == v'
-    go (Free (Atom _)) = False
-    go (Free (Cons h t)) = go h || go t
-
+occursCheck v (Pure v') = v == v'
+occursCheck _ (Free (Atom _)) = False
+occursCheck v (Free (Cons h t)) = occursCheck v h || occursCheck v t
 
 -- | Example program: append relation
 -- appendProg represents append(xs, ys, zs) where xs ++ ys = zs
