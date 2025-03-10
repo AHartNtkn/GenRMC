@@ -29,7 +29,7 @@ module GenRMC
   , additionEx2
   , runDFS
   , runBFS
- -- , runInterleaving
+  , runInterleaving
   , Poly(..)
   , polyMap
   , hylo
