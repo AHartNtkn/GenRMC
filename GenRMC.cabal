@@ -15,6 +15,9 @@ library
     GenRMC.SExp
     GenRMC.Examples
     GenRMC.Poly
+    GenRMC.Superposition.DFSSup
+    GenRMC.Superposition.BFSSup
+    GenRMC.Superposition.InterleavingSup
   build-depends:
     base >=4.14 && <5,
     containers,
@@ -63,4 +66,14 @@ executable test-unify
     containers,
     free,
     hspec
+  default-language: Haskell2010
+  
+executable test-interleaving
+  main-is:          TestInterleaving.hs
+  hs-source-dirs:   app
+  build-depends:
+    base,
+    GenRMC,
+    containers,
+    free
   default-language: Haskell2010

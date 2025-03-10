@@ -6,7 +6,7 @@ module GenRMC.Poly where
 
 import GenRMC.Types
 import GenRMC.SExp
-import GenRMC.Examples (z, s, runProgram)
+import GenRMC.Examples (z, s)
 
 -- | Data type for polynomial functors
 data Poly
@@ -94,8 +94,3 @@ addAlg = Or
 -- | Addition as a hylomorphism over sum[C, X]
 additionEx3 :: Ord n => Prog SExpF n (SExpProp n)
 additionEx3 = hylo (Sum [C, X]) addCoalg addAlg
-
--- | Test the addition example with specific inputs
-testAddition :: (Enum n, Ord n) => [SExp n]
-testAddition = runProgram (cons (s (s z)) (s (s (s z)))) additionEx3
--- Should compute 2 + 3 = 5

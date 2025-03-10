@@ -134,31 +134,6 @@ occursCheck v = go
     go (Free (Atom _)) = False
     go (Free (Cons h t)) = go h || go t
 
--- | List-based implementation of Sup
--- Each state keeps track of its own next variable counter
-newtype ListSup f n p = ListSup { unListSup :: [(n, (Free f n, [Prog f n p], p))] }
-
--- | Semigroup instance for ListSup
-instance Semigroup (ListSup f n p) where
-  (<>) (ListSup xs) (ListSup ys) = ListSup (xs ++ ys)
-
--- | Monoid instance for ListSup
-instance Monoid (ListSup f n p) where
-  mempty = ListSup []
-
-instance (Ord n, Enum n) => Sup SExpF n (SExpProp n) (ListSup SExpF n (SExpProp n)) where
-  singleton nextSym d ps cs = ListSup [(nextSym, (d, ps, cs))]
-  
-  extract (ListSup []) = Nothing
-  extract (ListSup ((n, (datum, progs, cs)):xs)) = Just ((n, datum, progs, cs), ListSup xs)
-  
-  -- Search strategy is defined here. In this case, we are just doing a depth-first search
-  fullStep _ (ListSup []) = (Nothing, ListSup [])
-  fullStep _ (ListSup ((_, (datum, [], cs)):rest)) = 
-    (Just (datum, cs), ListSup rest)
-  fullStep stepFn (ListSup ((next, (datum, progs, cs)):rest)) =
-    let newStates = stepFn next datum progs cs
-    in fullStep stepFn (newStates `union` ListSup rest)
 
 -- | Example program: append relation
 -- appendProg represents append(xs, ys, zs) where xs ++ ys = zs

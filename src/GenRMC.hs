@@ -15,7 +15,9 @@ module GenRMC
   , SExp
   , SExpProp(..)
   , Equation(..)
-  , ListSup(..)
+  , DFSSup(..)
+  , BFSSup(..)
+  , InterleavingSup(..)
   , atom
   , list
   , var
@@ -25,9 +27,9 @@ module GenRMC
   , z
   , s
   , additionEx2
-  , runProgram
-  , runProgramPair
-    -- * Polytypic programming
+  , runDFS
+  , runBFS
+ -- , runInterleaving
   , Poly(..)
   , polyMap
   , hylo
@@ -41,5 +43,8 @@ module GenRMC
 import GenRMC.Types
 import GenRMC.Core
 import GenRMC.SExp
+import GenRMC.Superposition.DFSSup
+import GenRMC.Superposition.BFSSup
+import GenRMC.Superposition.InterleavingSup
 import GenRMC.Examples
 import GenRMC.Poly

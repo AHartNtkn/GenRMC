@@ -4,8 +4,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module GenRMC.Types where
 
@@ -63,10 +61,12 @@ class (Monoid p) => Prop f n p | p -> f n where
 
 -- | Sup represents a set of states in our execution
 class (Monoid s) => Sup f n p s | s -> f n p where
+  -- | Checks if the state is empty
+  isEmpty :: s -> Bool
+
   -- empty and mappend are inherited from Monoid
   singleton :: n -> Free f n -> [Prog f n p] -> p -> s
-  -- | Extract a state and the rest of the states
-  extract :: s -> Maybe ((n, Free f n, [Prog f n p], p), s)
+
   -- | Execute a step and process results
   fullStep :: (Ord n, Enum n) 
            => (n -> Free f n -> [Prog f n p] -> p -> s)

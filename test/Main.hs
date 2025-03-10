@@ -9,6 +9,7 @@ import Data.List (sort)
 import GenRMC
 import GenRMC.Types
 import GenRMC.SExp
+import GenRMC.Superposition.DFSSup
 
 main :: IO ()
 main = hspec $ do
@@ -72,7 +73,7 @@ main = hspec $ do
                             list [atom "c", nil],
                             var 0]) 
                       (var 0)
-          initial = singleton 0 (var 0) [] mempty :: ListSup SExpF Int (SExpProp Int)
+          initial = singleton 0 (var 0) [] mempty :: DFSSup SExpF Int (SExpProp Int)
           results = take 1 $ run initial 0 (var 0) (Comp appendProg (Comp query Star))
       length results `shouldBe` 1
       let expected = list [atom "a", list [atom "b", list [atom "c", nil]]]

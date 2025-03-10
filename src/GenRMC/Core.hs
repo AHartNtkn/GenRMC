@@ -41,9 +41,11 @@ run :: forall n f p s. (Ord n, Enum n, Functor f, Prop f n p, Sup f n p s) => s 
 run _ seed datum prog = 
   let initState = singleton seed datum [prog] true :: s
       go states =
-        let (mOut, states') = fullStep step states
-        in case mOut of
-          Nothing -> []
-          Just out -> out : go states'
+        if isEmpty states
+          then []
+          else let (mOut, states') = fullStep step states
+               in case mOut of
+                  Nothing -> go states'
+                  Just out -> out : go states'
   in go initState
 
