@@ -29,7 +29,6 @@ exN n f
   | n <= 0 = error "exN requires at least 1 variable"
   | otherwise = Ex $ \x -> go [x] (n-1)
   where
-    go vars 0 = f vars
     go vars k | k > 0 = Ex $ \x -> go (x : vars) (k-1)
     go vars _ = f vars
 
@@ -43,11 +42,12 @@ dual (Fp f) = Fp (dual . f . dual)        -- Wrap function with duals
 dual (Map t u) = Map u t                  -- Swap the terms
 dual (Cstr p) = Cstr p                    -- Constraints remain unchanged
 
--- | Prop is a class for proposition types that can be used in our language
+-- | Prop is a class for propositions over our terms
 class (Monoid p) => Prop f n p | p -> f n where
   -- | Unify two terms
   unify :: Free f n -> Free f n -> [p]
   -- | Normalize a proposition to a set of simpler propositions with variable substitutions
+  -- | The substitution map should arise out of variables being eliminated.
   normalize :: p -> [(p, Map n (Free f n))]
   -- | Apply a substitution to a proposition
   substProp :: Map n (Free f n) -> p -> p
@@ -64,7 +64,6 @@ class (Monoid s) => Sup f n p s | s -> f n p where
   -- | Checks if the state is empty
   isEmpty :: s -> Bool
 
-  -- empty and mappend are inherited from Monoid
   singleton :: n -> Free f n -> [Prog f n p] -> p -> s
 
   -- | Execute a step and process results
