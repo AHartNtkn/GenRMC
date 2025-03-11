@@ -32,6 +32,22 @@ exN n f
     go vars k | k > 0 = Ex $ \x -> go (x : vars) (k-1)
     go vars _ = f vars
 
+-- | Compose a list of programs sequentially
+-- Empty list becomes Star (identity for composition)
+compAll :: [Prog f n p] -> Prog f n p
+compAll [] = Star
+compAll [p] = p
+compAll (p:ps) = Comp p (compAll ps)
+
+-- | Combine a list of programs with Or in a balanced tree structure
+-- This ensures logarithmic nesting depth for better performance
+orAll :: [Prog f n p] -> Prog f n p
+orAll [] = error "Cannot take the disjunction of an empty list"
+orAll [p] = p
+orAll ps = 
+  let (left, right) = splitAt (length ps `div` 2) ps
+  in Or (orAll left) (orAll right)
+
 -- | Compute the dual of a program
 dual :: Prog f n p -> Prog f n p
 dual Star = Star
