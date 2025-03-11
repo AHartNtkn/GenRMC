@@ -3,7 +3,7 @@ module Main where
 import GenRMC
 import GenRMC.Types
 import GenRMC.SExp
-import GenRMC.Examples
+import GenRMC.Examples.Addition
 import GenRMC.Superposition.InterleavingSup
 
 -- | Display a list of S-expressions nicely

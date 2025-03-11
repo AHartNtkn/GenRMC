@@ -13,7 +13,8 @@ library
     GenRMC.Core
     GenRMC.Types
     GenRMC.SExp
-    GenRMC.Examples
+    GenRMC.Examples.Addition
+    GenRMC.Examples.TreeCalculus
     GenRMC.Poly
     GenRMC.Superposition.DFSSup
     GenRMC.Superposition.BFSSup

@@ -7,7 +7,8 @@ import qualified Data.Map as Map
 import GenRMC
 import GenRMC.Types
 import GenRMC.SExp
-import GenRMC.Examples
+import GenRMC.Examples.Addition
+import GenRMC.Examples.TreeCalculus
 
 -- | Display a list of S-expressions nicely
 displayResults :: Show n => [SExp n] -> IO ()

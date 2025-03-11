@@ -6,7 +6,6 @@ module GenRMC.Poly where
 
 import GenRMC.Types
 import GenRMC.SExp
-import GenRMC.Examples (z, s)
 
 -- | Data type for polynomial functors
 data Poly
@@ -77,20 +76,3 @@ polyMap (Prod ps) f =
 -- | Create a hylomorphism from a polynomial functor and coalgebra/algebra
 hylo :: Ord n => Poly -> Prog SExpF n (SExpProp n) -> Prog SExpF n (SExpProp n) -> Prog SExpF n (SExpProp n)
 hylo poly coalg alg = Fp $ \self -> Comp coalg (Comp (polyMap poly self) alg)
-
--- | Example: Addition as a hylomorphism
--- | Coalgebra for addition
-addCoalg :: Ord n => Prog SExpF n (SExpProp n)
-addCoalg = Or
-  (Ex $ \b -> Map (cons z (var b)) (in1 (var b)))
-  (Ex $ \a -> Ex $ \b -> Map (cons (s (var a)) (var b)) (in2 (cons (var a) (var b))))
-
--- | Algebra for addition
-addAlg :: Ord n => Prog SExpF n (SExpProp n)
-addAlg = Or
-  (Ex $ \b -> Map (in1 (var b)) (var b))
-  (Ex $ \a -> Map (in2 (var a)) (s (var a)))
-
--- | Addition as a hylomorphism over sum[C, X]
-additionEx3 :: Ord n => Prog SExpF n (SExpProp n)
-additionEx3 = hylo (Sum [C, X]) addCoalg addAlg
