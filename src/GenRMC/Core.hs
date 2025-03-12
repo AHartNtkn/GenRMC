@@ -24,17 +24,13 @@ step nsym datum (p:ps) cs = case p of
     return (nsym, u, ps, andProp cs prop)
   Cstr pr -> do
     return (nsym, datum, ps, andProp cs pr)
-  And False t1 t2 p1 p2 ->  do
-    prop1 <- unify t1 datum
-    prop2 <- unify t2 datum
-    return (nsym, datum, And True t1 t2 p1 p2:ps, andProp (andProp cs prop1) prop2)
-  And True t1 t2 [] [] -> do
+  And t1 t2 [] [] -> do
     prop <- unify t1 t2
     return (nsym, t1, ps, andProp cs prop)
-  And True t1 t2 p1 p2 -> do
+  And t1 t2 p1 p2 -> do
     (nsym', t1', p1', cs') <- step nsym t1 p1 cs
     (nsym'', t2', p2', cs'') <- step nsym' t2 p2 cs'
-    return (nsym'', datum, And True t1' t2' p1' p2':ps, cs'')
+    return (nsym'', datum, And t1' t2' p1' p2':ps, cs'')
 
 -- | Propagate constraints through a state
 propagate :: (Ord n, Functor f, Prop f n p)
