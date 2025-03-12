@@ -6,6 +6,7 @@ module GenRMC
   , Sup(..)
     -- * Core functions
   , step
+  , stepProp
   , run
   , dual
   , substProg
