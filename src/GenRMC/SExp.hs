@@ -2,18 +2,19 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFoldable #-}
 
 module GenRMC.SExp where
 
 import Control.Monad.Free
-import Data.Map (Map)
 import qualified Data.Map as Map
 
 import GenRMC.Types
+import GenRMC.Unify.FirstOrder
 
 -- | S-expression functor
 data SExpF x = Atom String | Cons x x
-  deriving (Eq, Functor)
+  deriving (Eq, Functor, Foldable)
 
 -- | Show instance for SExpF
 instance Show x => Show (SExpF x) where
@@ -58,79 +59,30 @@ list = foldr cons nil
 var :: n -> SExp n
 var = Pure
 
--- | Equation type for S-expressions
-data Equation n = Equation (SExp n) (SExp n)
+-- | Type alias for generic equations with SExpF
+type SExpEquation n = Equation SExpF n
 
--- | Show instance for Equation
-instance Show n => Show (Equation n) where
-  show (Equation l r) = prettyPrintSExp l ++ " = " ++ prettyPrintSExp r
+-- | Set of equations for S-expressions
+type SExpProp n = UnifyProp SExpF n
 
--- | Set of equations
-newtype SExpProp n = SExpProp [Equation n]
+-- | Make SExpF an instance of Unifiable
+instance Ord n => Unifiable SExpF n where
+  zipMatch (Atom s1) (Atom s2)
+    | s1 == s2 = Right []
+    | otherwise = Left $ "Cannot unify atoms " ++ s1 ++ " and " ++ s2
+  zipMatch (Cons h1 t1) (Cons h2 t2) = 
+    Right [(h1, h2), (t1, t2)]
+  zipMatch _ _ = 
+    Left "Cannot unify different constructors"
 
--- | Show instance for SExpProp
-instance Show n => Show (SExpProp n) where
-  show (SExpProp eqs) = unlines $ map show eqs
-
--- | Semigroup instance for SExpProp
-instance Semigroup (SExpProp n) where
-  (<>) (SExpProp xs) (SExpProp ys) = SExpProp (xs ++ ys)
-
--- | Monoid instance for SExpProp
-instance Monoid (SExpProp n) where
-  mempty = SExpProp []
-
--- Make SExpProp an instance of Prop
+-- | Make SExpProp an instance of Prop
 instance Ord n => Prop SExpF n (SExpProp n) where  
-  unify t1 t2 = [SExpProp [Equation t1 t2]]
+  unify t1 t2 = [UnifyProp [Equation t1 t2]]
   
-  normalize (SExpProp eqs) = normalizeEquations eqs
+  normalize = normalizeEquations . unwrapProp
+    where unwrapProp (UnifyProp eqs) = eqs
   
-  substProp subst (SExpProp eqs) = SExpProp (map applySubst eqs)
-    where
-      applySubst (Equation t1 t2) = Equation (substData subst t1) (substData subst t2)
-
--- | Normalize a set of equations into a substitution map
-normalizeEquations :: Ord n => [Equation n] -> [(SExpProp n, Map n (SExp n))]
-normalizeEquations eqs =
-  case orientEquations eqs of
-    Left _ -> []  -- Inconsistent equations
-    Right subst -> [(true, subst)]
-
--- | Orient equations into a substitution map
-orientEquations :: Ord n => [Equation n] -> Either String (Map n (SExp n))
-orientEquations = foldl addEquation (Right Map.empty)
-  where
-    addEquation (Left err) _ = Left err
-    addEquation (Right subst) (Equation e1 e2) =
-      let t1' = substData subst e1
-          t2' = substData subst e2
-      in case (t1', t2') of
-        (Pure v1, Pure v2) -> 
-          if v1 == v2
-            then Right subst
-            else Right (Map.insert v1 (Pure v2) subst)
-        (Pure v1, t) -> 
-          if occursCheck v1 t
-            then Left "Occurs check failed"
-            else Right (Map.insert v1 t subst)
-        (t, Pure v2) -> 
-          if occursCheck v2 t
-            then Left "Occurs check failed"
-            else Right (Map.insert v2 t subst)
-        (Free (Atom s1), Free (Atom s2)) ->
-          if s1 == s2 
-            then Right subst 
-            else Left $ "Cannot unify atoms " ++ s1 ++ " and " ++ s2
-        (Free (Cons h1 t1), Free (Cons h2 t2)) ->
-          foldl addEquation (Right subst) [Equation h1 h2, Equation t1 t2]
-        _ -> Left "Cannot unify different constructors"
-
--- | Check if a variable occurs in a term
-occursCheck :: Ord n => n -> SExp n -> Bool
-occursCheck v (Pure v') = v == v'
-occursCheck _ (Free (Atom _)) = False
-occursCheck v (Free (Cons h t)) = occursCheck v h || occursCheck v t
+  substProp subst (UnifyProp eqs) = UnifyProp (map (applySubst subst) eqs)
 
 -- | Example program: append relation
 -- appendProg represents append(xs, ys, zs) where xs ++ ys = zs

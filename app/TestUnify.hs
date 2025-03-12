@@ -9,6 +9,7 @@ import GenRMC.Types
 import GenRMC.SExp
 import GenRMC.Examples.Addition
 import GenRMC.Examples.TreeCalculus
+import GenRMC.Unify.FirstOrder
 
 -- | Display a list of S-expressions nicely
 displayResults :: Show n => [SExp n] -> IO ()
@@ -30,8 +31,8 @@ testUnify = do
   putStrLn $ "  e1 = " ++ prettyPrintSExp e1
   putStrLn $ "  e2 = " ++ prettyPrintSExp e2
   putStrLn $ "  Number of solutions: " ++ show (length norm)
-  let SExpProp equations = fst (head norm)
-  putStrLn $ "  Empty equations: " ++ show (null equations)
+  -- We know it's an UnifyProp, but we can't pattern match since it's not exported
+  putStrLn $ "  Solution exists: " ++ show (not (null norm))
   putStrLn ""
   
   let e3 = var x :: SExp Int

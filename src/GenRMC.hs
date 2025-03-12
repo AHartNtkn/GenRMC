@@ -19,8 +19,7 @@ module GenRMC
     -- * S-expression example
   , SExpF(..)
   , SExp
-  , SExpProp(..)
-  , Equation(..)
+  , SExpProp
   , atom
   , list
   , var
@@ -39,6 +38,12 @@ module GenRMC
   , additionEx3
   -- * Tree Calculus
   , treeCalculusEval
+    -- * First Order Unification
+  , Unifiable(..)
+  , Equation(..)
+  , UnifyProp(..)
+  , normalizeEquations
+  , orientEquations
   ) where
 
 import GenRMC.Types
@@ -50,3 +55,4 @@ import GenRMC.Superposition.InterleavingSup
 import GenRMC.Examples.Addition
 import GenRMC.Examples.TreeCalculus
 import GenRMC.Poly
+import GenRMC.Unify.FirstOrder
