@@ -8,7 +8,6 @@ import Control.Monad.Free
 import Data.Foldable (fold)
 
 import GenRMC.Types
-import GenRMC.Unify.FirstOrder (Equation(Equation))
 
 -- | Core step function for execution
 step :: (Ord n, Enum n, Functor f, Prop f n p) 
