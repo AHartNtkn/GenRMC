@@ -21,7 +21,7 @@ data Prog f n p
   | Fp (Prog f n p -> Prog f n p)
   | Map (Free f n) (Free f n)
   | Cstr p
-  | And (Free f n) (Free f n) [Prog f n p] [Prog f n p]
+  | And (Maybe n) (Free f n) (Free f n) [Prog f n p] [Prog f n p]
 
 -- | Helper to create existential quantification over n variables
 -- Returns a list of variables to the continuation
@@ -49,23 +49,21 @@ orAll ps =
   let (left, right) = splitAt (length ps `div` 2) ps
   in Or (orAll left) (orAll right)
 
--- | Create a tensor from a list of programs in a balanced binary tree structure
+-- | Create a conjunction from a list of programs in a balanced binary tree structure
 -- This ensures logarithmic nesting depth for better performance
 andAll :: [Prog f n p] -> Prog f n p
-andAll [] = error "Cannot tensor an empty list"
+andAll [] = error "Cannot conjoin an empty list"
 andAll [p] = p
-andAll ps = Ex $ \x -> compAll [Map (Pure x) (Pure x),
-                                buildTensorTree x ps,
-                                Map (Pure x) (Pure x)]
+andAll ps = Ex $ \x -> buildAndTree x ps
   where
-  -- | Helper function to build a balanced binary tree of tensors
-  buildTensorTree :: n -> [Prog f n p] -> Prog f n p
-  buildTensorTree _ [q] = q
-  buildTensorTree x qs =
+  -- | Helper function to build a balanced binary tree of conjunctions
+  buildAndTree :: n -> [Prog f n p] -> Prog f n p
+  buildAndTree _ [q] = q
+  buildAndTree x qs =
     let (left, right) = splitAt (length qs `div` 2) qs
-        leftTree = buildTensorTree x left
-        rightTree = buildTensorTree x right
-    in And (Pure x) (Pure x) [leftTree] [rightTree]
+        leftTree = buildAndTree x left
+        rightTree = buildAndTree x right
+    in And (Just x) (Pure x) (Pure x) [leftTree] [rightTree]
 
 -- | Compute the dual of a program
 dual :: Prog f n p -> Prog f n p
@@ -76,7 +74,7 @@ dual (Ex f) = Ex (dual . f)               -- Existential remains existential
 dual (Fp f) = Fp (dual . f . dual)        -- Wrap function with duals
 dual (Map t u) = Map u t                  -- Swap the terms
 dual (Cstr p) = Cstr p                    -- Constraints remain unchanged
-dual (And t u p q) = And t u (map dual $ reverse p) (map dual $ reverse q)
+dual (And m t u p q) = And m t u (map dual $ reverse p) (map dual $ reverse q)
 
 -- | Prop is a class for propositions over our terms
 class (Monoid p) => Prop f n p | p -> f n where
@@ -126,7 +124,7 @@ substProg subst = go
     go (Fp f) = Fp (go . f)
     go (Map t u) = Map (substData subst t) (substData subst u)
     go (Cstr p) = Cstr (substProp subst p)
-    go (And t u p q) = And (substData subst t) (substData subst u) (map go p) (map go q)
+    go (And m t u p q) = And m (substData subst t) (substData subst u) (map go p) (map go q)
 
 substData :: (Ord n, Functor f) => Map n (Free f n) -> Free f n -> Free f n
 substData subst = go

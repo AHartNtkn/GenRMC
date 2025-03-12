@@ -8,6 +8,7 @@ import Control.Monad.Free
 import Data.Foldable (fold)
 
 import GenRMC.Types
+import GenRMC.Unify.FirstOrder (Equation(Equation))
 
 -- | Core step function for execution
 step :: (Ord n, Enum n, Functor f, Prop f n p) 
@@ -24,13 +25,16 @@ step nsym datum (p:ps) cs = case p of
     return (nsym, u, ps, andProp cs prop)
   Cstr pr -> do
     return (nsym, datum, ps, andProp cs pr)
-  And t1 t2 [] [] -> do
+  And (Just x) t1 t2 p1 p2 -> do
+    prop <- unify (Pure x) datum
+    return (nsym, t1, And Nothing t1 t2 p1 p2:ps, andProp cs prop)
+  And Nothing t1 t2 [] [] -> do
     prop <- unify t1 t2
     return (nsym, t1, ps, andProp cs prop)
-  And t1 t2 p1 p2 -> do
+  And Nothing t1 t2 p1 p2 -> do
     (nsym', t1', p1', cs') <- step nsym t1 p1 cs
     (nsym'', t2', p2', cs'') <- step nsym' t2 p2 cs'
-    return (nsym'', datum, And t1' t2' p1' p2':ps, cs'')
+    return (nsym'', datum, And Nothing t1' t2' p1' p2':ps, cs'')
 
 -- | Propagate constraints through a state
 propagate :: (Ord n, Functor f, Prop f n p)
