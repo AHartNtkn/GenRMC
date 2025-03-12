@@ -21,7 +21,7 @@ data Prog f n p
   | Fp (Prog f n p -> Prog f n p)
   | Map (Free f n) (Free f n)
   | Cstr p
-  | Tensor Bool (Free f n) (Free f n) [Prog f n p] [Prog f n p]
+  | And Bool (Free f n) (Free f n) [Prog f n p] [Prog f n p]
 
 -- | Helper to create existential quantification over n variables
 -- Returns a list of variables to the continuation
@@ -51,10 +51,10 @@ orAll ps =
 
 -- | Create a tensor from a list of programs in a balanced binary tree structure
 -- This ensures logarithmic nesting depth for better performance
-tensorAll :: [Prog f n p] -> Prog f n p
-tensorAll [] = error "Cannot tensor an empty list"
-tensorAll [p] = p
-tensorAll ps = Ex $ flip buildTensorTree ps
+andAll :: [Prog f n p] -> Prog f n p
+andAll [] = error "Cannot tensor an empty list"
+andAll [p] = p
+andAll ps = Ex $ flip buildTensorTree ps
   where
   -- | Helper function to build a balanced binary tree of tensors
   buildTensorTree :: n -> [Prog f n p] -> Prog f n p
@@ -63,7 +63,7 @@ tensorAll ps = Ex $ flip buildTensorTree ps
     let (left, right) = splitAt (length qs `div` 2) qs
         leftTree = buildTensorTree x left
         rightTree = buildTensorTree x right
-    in Tensor False (Pure x) (Pure x) [leftTree] [rightTree]
+    in And False (Pure x) (Pure x) [leftTree] [rightTree]
 
 -- | Compute the dual of a program
 dual :: Prog f n p -> Prog f n p
@@ -74,7 +74,7 @@ dual (Ex f) = Ex (dual . f)               -- Existential remains existential
 dual (Fp f) = Fp (dual . f . dual)        -- Wrap function with duals
 dual (Map t u) = Map u t                  -- Swap the terms
 dual (Cstr p) = Cstr p                    -- Constraints remain unchanged
-dual (Tensor b t u p q) = Tensor b t u (map dual $ reverse p) (map dual $ reverse q)
+dual (And b t u p q) = And b t u (map dual $ reverse p) (map dual $ reverse q)
 
 -- | Prop is a class for propositions over our terms
 class (Monoid p) => Prop f n p | p -> f n where
@@ -124,7 +124,7 @@ substProg subst = go
     go (Fp f) = Fp (go . f)
     go (Map t u) = Map (substData subst t) (substData subst u)
     go (Cstr p) = Cstr (substProp subst p)
-    go (Tensor b t u p q) = Tensor b (substData subst t) (substData subst u) (map go p) (map go q)
+    go (And b t u p q) = And b (substData subst t) (substData subst u) (map go p) (map go q)
 
 substData :: (Ord n, Functor f) => Map n (Free f n) -> Free f n -> Free f n
 substData subst = go

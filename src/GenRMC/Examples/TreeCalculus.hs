@@ -94,7 +94,7 @@ treeCalculusEvalPar = Fp $ \self ->
     -- eval ((* y) z) = ((* y) z)
     exN 4 $ \[y, y', z, z'] -> compAll [
       Map (cons (cons (atom "*") (var y)) (var z)) (cons (var y) (var z)),
-      tensorAll [
+      andAll [
         compAll [Map (cons (var y) (var z)) (var y), self, Map (var y') (cons (var y') (var z'))],
         compAll [Map (cons (var y) (var z)) (var z), self, Map (var z') (cons (var y') (var z'))]
       ],
@@ -111,7 +111,7 @@ treeCalculusEvalPar = Fp $ \self ->
     exN 6 $ \[x, x', y, y', z, z'] -> compAll [
       Map (cons (cons (cons (atom "*") (cons (atom "*") (var x))) (var y)) (var z)) 
           (cons (var x) (cons (var y) (var z))),
-      tensorAll [
+      andAll [
         compAll [Map (cons (var x) (cons (var y) (var z))) (var x), self, Map (var x') (cons (var x') (cons (var y') (var z')))],
         compAll [Map (cons (var x) (cons (var y) (var z))) (var y), self, Map (var y') (cons (var x') (cons (var y') (var z)))],
         compAll [Map (cons (var x) (cons (var y) (var z))) (var z), self, Map (var z') (cons (var x') (cons (var y') (var z')))]
@@ -130,7 +130,7 @@ treeCalculusEvalPar = Fp $ \self ->
     exN 6 $ \[w, x, x', y, u, u'] -> compAll [
       Map (cons (cons (cons (atom "*") (cons (cons (atom "*") (var w)) (var x))) (var y)) (cons (atom "*") (var u)))
           (cons (var x) (var u)),
-      tensorAll [
+      andAll [
         compAll [Map (cons (var x) (var u)) (var x), self, Map (var x') (cons (var x') (var u'))],
         compAll [Map (cons (var x) (var u)) (var u), self, Map (var u') (cons (var x') (var u'))]
       ],
@@ -141,7 +141,7 @@ treeCalculusEvalPar = Fp $ \self ->
     exN 8 $ \[w, x, y, y', u, u', v, v'] -> compAll [
       Map (cons (cons (cons (atom "*") (cons (cons (atom "*") (var w)) (var x))) (var y)) (cons (cons (atom "*") (var u)) (var v)))
           (cons (var y) (cons (var u) (var v))),
-      tensorAll [
+      andAll [
         compAll [Map (cons (var y) (cons (var u) (var v))) (var y), self, Map (var y') (cons (var y') (cons (var u') (var v')))],
         compAll [Map (cons (var y) (cons (var u) (var v))) (var u), self, Map (var u') (cons (var y') (cons (var u') (var v')))],
         compAll [Map (cons (var y) (cons (var u) (var v))) (var v), self, Map (var v') (cons (var y') (cons (var u') (var v')))]
