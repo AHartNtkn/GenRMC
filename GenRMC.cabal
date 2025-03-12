@@ -79,3 +79,13 @@ executable test-interleaving
     containers,
     free
   default-language: Haskell2010
+
+executable test-and
+  main-is:          TestAnd.hs
+  hs-source-dirs:   app
+  build-depends:
+    base,
+    GenRMC,
+    containers,
+    free
+  default-language: Haskell2010
