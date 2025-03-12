@@ -71,4 +71,8 @@ main = do
   let test7 = andAll [Or unifyFirst unifyFirst2, Or unifySecond unifySecond2]
   displayResults (map fst $ runDFS (cons (var 100) (var 101)) test7 :: [SExp Int])
 
+  putStrLn "\n8. Nontrivial unification across branches with disjunction & delay:"
+  let test8 = andAll [Or unifyFirst unifyFirst2, Comp Star (Or unifySecond unifySecond2)]
+  displayResults (map fst $ runDFS (cons (var 100) (var 101)) test8 :: [SExp Int])
+
   putStrLn "\nDone."
