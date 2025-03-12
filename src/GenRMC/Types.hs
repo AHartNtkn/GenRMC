@@ -54,8 +54,9 @@ orAll ps =
 andAll :: [Prog f n p] -> Prog f n p
 andAll [] = error "Cannot tensor an empty list"
 andAll [p] = p
-andAll ps = Ex $ \x -> Comp (Map (Pure x) (Pure x)) 
-                            (buildTensorTree x ps)
+andAll ps = Ex $ \x -> compAll [Map (Pure x) (Pure x),
+                                buildTensorTree x ps,
+                                Map (Pure x) (Pure x)]
   where
   -- | Helper function to build a balanced binary tree of tensors
   buildTensorTree :: n -> [Prog f n p] -> Prog f n p
