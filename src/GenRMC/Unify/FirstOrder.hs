@@ -7,19 +7,20 @@
 module GenRMC.Unify.FirstOrder where
 
 import Control.Monad.Free
+import Control.Monad (foldM)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe ()
 
 import GenRMC.Types (substData)
 
+-- | Generic equation for first-order terms
+data Equation f n = Equation (Free f n) (Free f n)
+
 -- | Unifiable class for functors that support first-order unification
 class (Functor f, Foldable f, Ord n) => Unifiable f n | f -> where
   -- | Checks if two functors can be unified and returns equations for their components
-  zipMatch :: f (Free f n) -> f (Free f n) -> Either String [(Free f n, Free f n)]
-
--- | Generic equation for first-order terms
-data Equation f n = Equation (Free f n) (Free f n)
+  zipMatch :: f (Free f n) -> f (Free f n) -> [[Equation f n]]
 
 -- | Generic set of equations
 newtype UnifyProp f n = UnifyProp [Equation f n]
@@ -32,42 +33,24 @@ instance Semigroup (UnifyProp f n) where
 instance Monoid (UnifyProp f n) where
   mempty = UnifyProp []
 
--- | Normalize a set of equations into a substitution map
-normalizeEquations :: (Unifiable f n) 
-                   => [Equation f n] 
-                   -> [(UnifyProp f n, Map n (Free f n))]
-normalizeEquations eqs =
-  case orientEquations eqs of
-    Left _ -> []  -- Inconsistent equations
-    Right subst -> [(mempty, subst)]
-
--- | Orient equations into a substitution map
+-- | Orient equations into possible substitution maps
 orientEquations :: (Unifiable f n) 
                 => [Equation f n] 
-                -> Either String (Map n (Free f n))
-orientEquations = foldl addEquation (Right Map.empty)
+                -> [Map n (Free f n)]
+orientEquations = foldM addEquation Map.empty
   where
-    addEquation (Left err) _ = Left err
-    addEquation (Right subst) (Equation e1 e2) =
-      let t1' = substData subst e1
-          t2' = substData subst e2
+    addEquation :: (Unifiable f n) => Map n (Free f n) -> Equation f n -> [Map n (Free f n)]
+    addEquation subst (Equation t1 t2) =
+      let t1' = substData subst t1
+          t2' = substData subst t2
       in case (t1', t2') of
         (Pure v1, Pure v2) -> 
           if v1 == v2
-            then Right subst
-            else Right (Map.insert v1 (Pure v2) subst)
-        (Pure v1, t) -> 
-          if occursCheck v1 t
-            then Left "Occurs check failed"
-            else Right (Map.insert v1 t subst)
-        (t, Pure v2) -> 
-          if occursCheck v2 t
-            then Left "Occurs check failed"
-            else Right (Map.insert v2 t subst)
-        (Free f1, Free f2) ->
-          case zipMatch f1 f2 of
-            Left err -> Left err
-            Right eqs -> foldl addEquation (Right subst) (map (uncurry Equation) eqs)
+            then [subst]
+            else [Map.insert v1 (Pure v2) subst]
+        (Pure v1, t) -> [Map.insert v1 t subst | not (occursCheck v1 t)]
+        (t, Pure v2) -> [Map.insert v2 t subst | not (occursCheck v2 t)]
+        (Free f1, Free f2) -> concatMap (foldM addEquation subst) $ zipMatch f1 f2
 
 -- | Check if a variable occurs in a term
 occursCheck :: (Unifiable f n) => n -> Free f n -> Bool

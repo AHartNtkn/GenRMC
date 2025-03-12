@@ -43,7 +43,6 @@ module GenRMC
   , Unifiable(..)
   , Equation(..)
   , UnifyProp(..)
-  , normalizeEquations
   , orientEquations
   ) where
 

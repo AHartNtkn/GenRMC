@@ -68,19 +68,18 @@ type SExpProp n = UnifyProp SExpF n
 -- | Make SExpF an instance of Unifiable
 instance Ord n => Unifiable SExpF n where
   zipMatch (Atom s1) (Atom s2)
-    | s1 == s2 = Right []
-    | otherwise = Left $ "Cannot unify atoms " ++ s1 ++ " and " ++ s2
+    | s1 == s2 = [[]]
+    | otherwise = []
   zipMatch (Cons h1 t1) (Cons h2 t2) = 
-    Right [(h1, h2), (t1, t2)]
-  zipMatch _ _ = 
-    Left "Cannot unify different constructors"
+    [[Equation h1 h2, Equation t1 t2]]
+  zipMatch _ _ = []
 
 -- | Make SExpProp an instance of Prop
 instance Ord n => Prop SExpF n (SExpProp n) where  
   unify t1 t2 = [UnifyProp [Equation t1 t2]]
   
-  normalize = normalizeEquations . unwrapProp
-    where unwrapProp (UnifyProp eqs) = eqs
+  normalize (UnifyProp eqs) =
+    [(mempty, subst) | subst <- orientEquations eqs]
   
   substProp subst (UnifyProp eqs) = UnifyProp (map (applySubst subst) eqs)
 
