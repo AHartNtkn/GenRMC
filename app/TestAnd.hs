@@ -24,10 +24,20 @@ unifyFirst :: Prog SExpF Int (SExpProp Int)
 unifyFirst = Ex $ \x -> Ex $ \y ->
              Comp (Map (cons (var x) (var y)) (var x)) (Map (atom "a") (cons (var x) (var y)))
 
+unifyFirst2 :: Prog SExpF Int (SExpProp Int)
+unifyFirst2 = Ex $ \x -> Ex $ \y ->
+             Comp (Map (cons (var x) (var y)) (var x)) (Map (atom "c") (cons (var x) (var y)))
+
+
 -- | Unify second component with b
 unifySecond :: Prog SExpF Int (SExpProp Int)
 unifySecond = Ex $ \x -> Ex $ \y ->
               Comp (Map (cons (var x) (var y)) (var y)) (Map (atom "b") (cons (var x) (var y)))
+
+unifySecond2 :: Prog SExpF Int (SExpProp Int)
+unifySecond2 = Ex $ \x -> Ex $ \y ->
+              Comp (Map (cons (var x) (var y)) (var y)) (Map (atom "d") (cons (var x) (var y)))
+
 
 main :: IO ()
 main = do
@@ -56,5 +66,9 @@ main = do
   putStrLn "\n6. Nontrivial unification across branches with dual:"
   let test6 = dual (andAll [unifyFirst, unifySecond])
   displayResults (map fst $ runDFS (cons (var 100) (var 101)) test6 :: [SExp Int])
+
+  putStrLn "\n7. Nontrivial unification across branches with disjunction:"
+  let test7 = andAll [Or unifyFirst unifyFirst2, Or unifySecond unifySecond2]
+  displayResults (map fst $ runDFS (cons (var 100) (var 101)) test7 :: [SExp Int])
 
   putStrLn "\nDone."
