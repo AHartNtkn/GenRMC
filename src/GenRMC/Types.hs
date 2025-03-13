@@ -54,16 +54,17 @@ orAll ps =
 andAll :: [Prog f n p] -> Prog f n p
 andAll [] = error "Cannot conjoin an empty list"
 andAll [p] = p
-andAll ps = Ex $ \x -> buildAndTree x ps
+andAll ps = Ex $ \x -> buildAndTree True x ps
   where
   -- | Helper function to build a balanced binary tree of conjunctions
-  buildAndTree :: n -> [Prog f n p] -> Prog f n p
-  buildAndTree _ [q] = q
-  buildAndTree x qs =
+  buildAndTree :: Bool -> n -> [Prog f n p] -> Prog f n p
+  buildAndTree _ _ [q] = q
+  buildAndTree fstLayer x qs =
     let (left, right) = splitAt (length qs `div` 2) qs
-        leftTree = buildAndTree x left
-        rightTree = buildAndTree x right
-    in And (Just x) (Pure x) (Pure x) [leftTree] [rightTree]
+        leftTree = buildAndTree False x left
+        rightTree = buildAndTree False x right
+    in And (if fstLayer then Just x else Nothing) 
+           (Pure x) (Pure x) [leftTree] [rightTree]
 
 -- | Compute the dual of a program
 dual :: Prog f n p -> Prog f n p
