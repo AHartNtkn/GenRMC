@@ -15,6 +15,7 @@ library
     GenRMC.SExp
     GenRMC.Examples.Addition
     GenRMC.Examples.TreeCalculus
+    GenRMC.Examples.TreeCalculusNormed
     GenRMC.Poly
     GenRMC.Superposition.DFSSup
     GenRMC.Superposition.BFSSup
@@ -82,6 +83,16 @@ executable test-interleaving
 
 executable test-and
   main-is:          TestAnd.hs
+  hs-source-dirs:   app
+  build-depends:
+    base,
+    GenRMC,
+    containers,
+    free
+  default-language: Haskell2010
+
+executable test-tree-calc-norm
+  main-is:          TestTreeCalcNorm.hs
   hs-source-dirs:   app
   build-depends:
     base,

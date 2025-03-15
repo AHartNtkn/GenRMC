@@ -66,7 +66,7 @@ type SExpEquation n = Equation SExpF n
 type SExpProp n = UnifyProp SExpF n
 
 -- | Make SExpF an instance of Unifiable
-instance Ord n => Unifiable SExpF n where
+instance Unifiable SExpF n where
   zipMatch (Atom s1) (Atom s2)
     | s1 == s2 = [[]]
     | otherwise = []

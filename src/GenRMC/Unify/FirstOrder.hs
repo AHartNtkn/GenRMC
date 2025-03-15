@@ -18,7 +18,7 @@ import GenRMC.Types (substData)
 data Equation f n = Equation (Free f n) (Free f n)
 
 -- | Unifiable class for functors that support first-order unification
-class (Functor f, Foldable f, Ord n) => Unifiable f n | f -> where
+class (Functor f, Foldable f) => Unifiable f n | f -> where
   -- | Checks if two functors can be unified and returns equations for their components
   zipMatch :: f (Free f n) -> f (Free f n) -> [[Equation f n]]
 
@@ -34,12 +34,12 @@ instance Monoid (UnifyProp f n) where
   mempty = UnifyProp []
 
 -- | Orient equations into possible substitution maps
-orientEquations :: (Unifiable f n) 
+orientEquations :: (Ord n, Unifiable f n) 
                 => [Equation f n] 
                 -> [Map n (Free f n)]
 orientEquations = foldM addEquation Map.empty
   where
-    addEquation :: (Unifiable f n) => Map n (Free f n) -> Equation f n -> [Map n (Free f n)]
+    addEquation :: (Ord n, Unifiable f n) => Map n (Free f n) -> Equation f n -> [Map n (Free f n)]
     addEquation subst (Equation t1 t2) =
       let t1' = substData subst t1
           t2' = substData subst t2
@@ -53,7 +53,7 @@ orientEquations = foldM addEquation Map.empty
         (Free f1, Free f2) -> concatMap (foldM addEquation subst) $ zipMatch f1 f2
 
 -- | Check if a variable occurs in a term
-occursCheck :: (Unifiable f n) => n -> Free f n -> Bool
+occursCheck :: (Ord n,Unifiable f n) => n -> Free f n -> Bool
 occursCheck v (Pure v') = v == v'
 occursCheck v (Free f) = any (occursCheck v) f
 
