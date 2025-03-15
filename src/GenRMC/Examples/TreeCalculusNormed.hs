@@ -117,3 +117,33 @@ treeCalcApp = Fp $ \self ->
         self
       ]
   ]
+
+testSearch3 :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+testSearch3 =
+  Ex $ \dummy -> Ex $ \prog ->
+    compAll [
+      andAll [
+        compAll [
+          Map (var dummy) (f (var prog) l),
+          treeCalcApp,
+          Map l (var prog)
+        ],
+        compAll [
+          Map (var dummy) (f (var prog) (b l)),
+          treeCalcApp,
+          Map (b l) (var prog)
+        ],
+        compAll [
+          Map (var dummy) (f (var prog) (f l l)),
+          treeCalcApp,
+          Map (f l l) (var prog)
+        ],
+        compAll [
+          Map (var dummy) (f (var prog) (b (b l))),
+          treeCalcApp,
+          Map (b (b l)) (var prog)
+        ]
+      ]
+    ]
+
+

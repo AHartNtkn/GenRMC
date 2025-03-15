@@ -100,3 +100,13 @@ executable test-tree-calc-norm
     containers,
     free
   default-language: Haskell2010
+
+executable test-tree-calc-search-interleaving
+  main-is:          TestTreeCalcSearchInterleaving.hs
+  hs-source-dirs:   app
+  build-depends:
+    base,
+    GenRMC,
+    containers,
+    free
+  default-language: Haskell2010
