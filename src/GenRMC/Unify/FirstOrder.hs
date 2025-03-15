@@ -10,9 +10,8 @@ import Control.Monad.Free
 import Control.Monad (foldM)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Maybe ()
-
-import GenRMC.Types (substData)
+import Data.Functor.Classes (Eq1, liftEq)
+import GenRMC.Types (Prop(..), substData)
 
 -- | Generic equation for first-order terms
 data Equation f n = Equation (Free f n) (Free f n)
@@ -32,6 +31,35 @@ instance Semigroup (UnifyProp f n) where
 -- | Monoid instance for UnifyProp
 instance Monoid (UnifyProp f n) where
   mempty = UnifyProp []
+
+-- | Make UnifyProp an instance of Prop
+instance (Ord n, Eq1 f, Unifiable f n) => Prop f n (UnifyProp f n) where
+  unify t1 t2 = [UnifyProp [Equation t1 t2]]
+
+  normalize (UnifyProp eqs) =
+    [(UnifyProp (simplifyConstraints simplified), subst) 
+    | subst <- orientEquations eqs
+    , let simplified = map (applySubst subst) eqs
+    ]
+    where
+      simplifyConstraints = concatMap (filter (not . isFullyInstantiated) . reduceEquation)
+        where
+          isFullyInstantiated (Equation t1 t2) = 
+            case (t1, t2) of
+              (Pure _, _) -> False
+              (_, Pure _) -> False
+              (Free f1, Free f2) -> liftEq (==) f1 f2
+
+          reduceEquation eq@(Equation t1 t2) =
+            case (t1, t2) of
+              (Free f1, Free f2) -> 
+                case zipMatch f1 f2 of
+                  [[]] -> []  -- Constructors match with no subterms
+                  [eqs'] -> eqs'  -- Constructors match with subterms to equate
+                  _ -> [eq]  -- Different constructors
+              _ -> [eq]  -- At least one side is a variable
+
+  substProp subst (UnifyProp eqs) = UnifyProp (map (applySubst subst) eqs)
 
 -- | Orient equations into possible substitution maps
 orientEquations :: (Ord n, Unifiable f n) 

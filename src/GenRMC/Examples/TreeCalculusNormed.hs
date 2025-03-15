@@ -8,12 +8,22 @@ module GenRMC.Examples.TreeCalculusNormed where
 import Control.Monad.Free
 import GenRMC.Types
 import GenRMC.Unify.FirstOrder
+import Data.Functor.Classes (Eq1, liftEq)
 
 -- | S-expression functor
 data TreeCalcF x = L | B x | F x x
   deriving (Eq, Functor, Foldable, Show)
 
+instance Eq1 TreeCalcF where
+  liftEq eq L L = True
+  liftEq eq (B x) (B y) = eq x y
+  liftEq eq (F x y) (F x' y') = eq x x' && eq y y'
+  liftEq _ _ _ = False
+
 type TreeCalc = Free TreeCalcF
+
+-- | Set of equations for S-expressions
+type TreeCalcProp n = UnifyProp TreeCalcF n
 
 -- | Make TreeCalcF an instance of Unifiable
 instance Unifiable TreeCalcF n where
@@ -37,17 +47,6 @@ var = Pure
 -- | Type alias for generic equations with TreeCalcF
 type TreeCalcEquation n = Equation TreeCalcF n
 
--- | Set of equations for S-expressions
-type TreeCalcProp n = UnifyProp TreeCalcF n
-
--- | Make TreeCalcProp an instance of Prop
-instance Ord n => Prop TreeCalcF n (TreeCalcProp n) where  
-  unify t1 t2 = [UnifyProp [Equation t1 t2]]
-  
-  normalize (UnifyProp eqs) =
-    [(mempty, subst) | subst <- orientEquations eqs]
-  
-  substProp subst (UnifyProp eqs) = UnifyProp (map (applySubst subst) eqs)
 
 prettyPrintTreeCalc :: Show n => TreeCalc n -> String
 prettyPrintTreeCalc (Pure n) = show n
@@ -118,26 +117,3 @@ treeCalcApp = Fp $ \self ->
         self
       ]
   ]
-
--- Search for an implementation of the identity function
-testSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
-testSearch =
-  Ex $ \dummy -> Ex $ \prog ->
-    compAll [
-      Map (var dummy) (var prog),
-      andAll [
-        compAll [
-          Map (var prog) (f (var prog) l),
-          treeCalcApp,
-          Map l (var prog)
-        ],
-        compAll [
-          Map (var prog) (f (var prog) (b l)),
-          treeCalcApp,
-          Map (b l) (var prog)
-        ]
-      ]
-    ]
-
-
-

@@ -8,6 +8,7 @@ module GenRMC.SExp where
 
 import Control.Monad.Free
 import qualified Data.Map as Map
+import Data.Functor.Classes (Eq1, liftEq)
 
 import GenRMC.Types
 import GenRMC.Unify.FirstOrder
@@ -15,6 +16,12 @@ import GenRMC.Unify.FirstOrder
 -- | S-expression functor
 data SExpF x = Atom String | Cons x x
   deriving (Eq, Functor, Foldable)
+
+-- | Make SExpF an instance of Eq1
+instance Eq1 SExpF where
+  liftEq eq (Atom s1) (Atom s2) = s1 == s2
+  liftEq eq (Cons h1 t1) (Cons h2 t2) = eq h1 h2 && eq t1 t2
+  liftEq _ _ _ = False
 
 -- | Show instance for SExpF
 instance Show x => Show (SExpF x) where
@@ -73,15 +80,6 @@ instance Unifiable SExpF n where
   zipMatch (Cons h1 t1) (Cons h2 t2) = 
     [[Equation h1 h2, Equation t1 t2]]
   zipMatch _ _ = []
-
--- | Make SExpProp an instance of Prop
-instance Ord n => Prop SExpF n (SExpProp n) where  
-  unify t1 t2 = [UnifyProp [Equation t1 t2]]
-  
-  normalize (UnifyProp eqs) =
-    [(mempty, subst) | subst <- orientEquations eqs]
-  
-  substProp subst (UnifyProp eqs) = UnifyProp (map (applySubst subst) eqs)
 
 -- | Example program: append relation
 -- appendProg represents append(xs, ys, zs) where xs ++ ys = zs
