@@ -26,7 +26,7 @@ displayFullResults results = do
 main :: IO ()
 main = do
   putStrLn "\nTesting Tree Calculus Search with Interleaving:"
-  putStrLn "\nSearching for identity function (first result only):"
+  putStrLn "\nSearching for identity function using test cases:"
   -- Take only the first result but show full information including constraints
-  displayFullResults (take 2 $ runDFS l testSearch3 :: [(TreeCalc Int, TreeCalcProp Int)])
-  putStrLn "\nSearch completed." 
+  displayFullResults (take 1 $ runDFS l testSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+  putStrLn "\nTests completed." 

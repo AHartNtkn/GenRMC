@@ -10,7 +10,7 @@ import GenRMC.Types
 import GenRMC.Unify.FirstOrder
 import Data.Functor.Classes (Eq1, liftEq)
 
--- | S-expression functor
+-- | Tree calculus functor
 data TreeCalcF x = L | B x | F x x
   deriving (Eq, Functor, Foldable, Show)
 
@@ -118,8 +118,9 @@ treeCalcApp = Fp $ \self ->
       ]
   ]
 
-testSearch3 :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
-testSearch3 =
+-- Id search based on test cases
+testSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+testSearch =
   Ex $ \dummy -> Ex $ \prog ->
     compAll [
       andAll [
@@ -145,5 +146,3 @@ testSearch3 =
         ]
       ]
     ]
-
-
