@@ -45,34 +45,34 @@ main = do
   
   putStrLn "\n1. Testing And with two failing relations:"
   let test1 = andAll [isA, isB]
-  displayResults (map fst $ runDFS (atom "c") test1 :: [SExp Int])
+  displayResults (map fst $ runDFS Nothing (atom "c") test1 :: [SExp Int])
   
   putStrLn "\n2. Testing And with one success, one failure:"
   let test2 = andAll [isA, isB]
-  displayResults (map fst $ runDFS (atom "a") test2 :: [SExp Int])
+  displayResults (map fst $ runDFS Nothing (atom "a") test2 :: [SExp Int])
   
   putStrLn "\n3. Testing And with both relations succeeding:"
   let test3 = andAll [isA, isA]
-  displayResults (map fst $ runDFS (atom "a") test3 :: [SExp Int])
+  displayResults (map fst $ runDFS Nothing (atom "a") test3 :: [SExp Int])
   
   putStrLn "\n4. Testing dual of And:"
   let test4 = dual (andAll [isA, isB])
-  displayResults (map fst $ runDFS (atom "a") test4 :: [SExp Int])
+  displayResults (map fst $ runDFS Nothing (atom "a") test4 :: [SExp Int])
 
   putStrLn "\n5. Nontrivial unification across branches:"
   let test5 = andAll [unifyFirst, unifySecond]
-  displayResults (map fst $ runDFS (cons (var 100) (var 101)) test5 :: [SExp Int])
+  displayResults (map fst $ runDFS Nothing (cons (var 100) (var 101)) test5 :: [SExp Int])
 
   putStrLn "\n6. Nontrivial unification across branches with dual:"
   let test6 = dual (andAll [unifyFirst, unifySecond])
-  displayResults (map fst $ runDFS (cons (var 100) (var 101)) test6 :: [SExp Int])
+  displayResults (map fst $ runDFS Nothing (cons (var 100) (var 101)) test6 :: [SExp Int])
 
   putStrLn "\n7. Nontrivial unification across branches with disjunction:"
   let test7 = andAll [Or unifyFirst unifyFirst2, Or unifySecond unifySecond2]
-  displayResults (map fst $ runDFS (cons (var 100) (var 101)) test7 :: [SExp Int])
+  displayResults (map fst $ runDFS Nothing (cons (var 100) (var 101)) test7 :: [SExp Int])
 
   putStrLn "\n8. Nontrivial unification across branches with disjunction & delay:"
   let test8 = andAll [Or unifyFirst unifyFirst2, Comp Star (Or unifySecond unifySecond2)]
-  displayResults (map fst $ runDFS (cons (var 100) (var 101)) test8 :: [SExp Int])
+  displayResults (map fst $ runDFS Nothing (cons (var 100) (var 101)) test8 :: [SExp Int])
 
   putStrLn "\nDone."

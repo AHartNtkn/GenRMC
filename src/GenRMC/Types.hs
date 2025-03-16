@@ -99,11 +99,12 @@ class (Monoid s) => Sup f n p s | s -> f n p where
   -- | Checks if the state is empty
   isEmpty :: s -> Bool
 
-  singleton :: n -> Free f n -> [Prog f n p] -> p -> s
+  -- | Create a singleton state with a counter
+  singleton :: Maybe Int -> n -> Free f n -> [Prog f n p] -> p -> s
 
   -- | Execute a step and process results
   fullStep :: (Ord n, Enum n) 
-           => (n -> Free f n -> [Prog f n p] -> p -> s)
+           => (Maybe Int -> n -> Free f n -> [Prog f n p] -> p -> s)
            -> s
            -> (Maybe (Free f n, p), s)
   

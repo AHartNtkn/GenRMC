@@ -29,7 +29,8 @@ module GenRMC
     -- * Polytypic hylomorphism
   , polyMap
   , hylo
-    -- * Natural number examples  , in1
+    -- * Natural number examples
+  , in1
   , in2
   , z
   , s

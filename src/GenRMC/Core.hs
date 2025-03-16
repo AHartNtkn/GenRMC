@@ -44,26 +44,31 @@ propagate datum progs prop = do
 
 -- | Step then propogate
 stepProp :: (Ord n, Enum n, Functor f, Prop f n p, Sup f n p s) 
-     => n -> Free f n -> [Prog f n p] -> p -> s
-stepProp nsym datum ps prop = 
-  let stepResults = step nsym datum ps prop
-      propResults = concatMap (\(n, d, ps', pr) -> 
-                              map (\(d', ps'', pr') -> (n, d', ps'', pr')) 
-                                  (propagate d ps' pr)) 
-                             stepResults
-      singles = map (\(n, d, ps', pr) -> singleton n d ps' pr) propResults
-  in fold singles
+         => Maybe Int -> n -> Free f n -> [Prog f n p] -> p -> s
+stepProp counter nsym datum ps cs = 
+  case counter of
+    Just 0 -> empty
+    _ -> let counter' = fmap (\x -> x - 1) counter
+             stepResults = step nsym datum ps cs
+             propResults = concatMap (\(n, d, ps', pr) -> 
+                                   map (\(d', ps'', pr') -> (n, d', ps'', pr')) 
+                                       (propagate d ps' pr)) 
+                                  stepResults
+             singles = map (\(n, d, ps', pr) -> singleton counter' n d ps' pr) propResults
+         in fold singles
 
 -- | Execute a program and return a stream of results
-run :: forall n f p s. (Ord n, Enum n, Functor f, Prop f n p, Sup f n p s) => s -> n -> Free f n -> Prog f n p -> [(Free f n, p)]
-run _ seed datum prog = 
-  let initState = singleton seed datum [prog] true :: s
-      go states =
+run :: forall n f p s. (Ord n, Enum n, Functor f, Prop f n p, Sup f n p s) 
+    => s -> n -> Maybe Int -> Free f n -> Prog f n p -> [(Free f n, p)]
+run _ seed counter datum prog = 
+  let initState = singleton counter seed datum [prog] true :: s
+      go :: s -> [(Free f n, p)]
+      go states = 
         if isEmpty states
-          then []
-          else let (mOut, states') = fullStep stepProp states
-               in case mOut of
+        then []
+        else let (mOut, states') = fullStep stepProp states
+             in case mOut of
                   Nothing -> go states'
-                  Just out -> out : go states'
+                  Just (d, p) -> (d, p) : go states'
   in go initState
 

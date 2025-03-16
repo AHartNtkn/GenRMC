@@ -17,19 +17,19 @@ main = do
   putStrLn "=== GenRMC Examples ==="
 
   putStrLn "\n1. Immediate termination:"
-  displayResults (map fst $ runInterleaving (atom "a") (Star :: Prog SExpF Int (SExpProp Int)) :: [SExp Int])
+  displayResults (map fst $ runInterleaving Nothing (atom "a") (Star :: Prog SExpF Int (SExpProp Int)) :: [SExp Int])
 
 
   putStrLn "\n1a. Computing 2 + 3:"
-  displayResults (map fst $ runInterleaving (cons (s (s z)) (s (s (s z)))) additionEx2 :: [SExp Int])
+  displayResults (map fst $ runInterleaving Nothing (cons (s (s z)) (s (s (s z)))) additionEx2 :: [SExp Int])
   
   putStrLn "\n2a. What numbers add up to 5? (using dual relation):"
-  displayResults (map fst $ runInterleaving (s (s (s (s (s z))))) (dual additionEx2) :: [SExp Int])
+  displayResults (map fst $ runInterleaving Nothing (s (s (s (s (s z))))) (dual additionEx2) :: [SExp Int])
   
   putStrLn "\n3a. Addition using polytypic hylomorphism (2 + 3):"
-  displayResults (map fst $ runInterleaving (cons (s (s z)) (s (s (s z)))) additionEx3 :: [SExp Int])
+  displayResults (map fst $ runInterleaving Nothing (cons (s (s z)) (s (s (s z)))) additionEx3 :: [SExp Int])
 
   putStrLn "\n4a. What numbers add up to 5 using polytypic hylomorphism?:"
-  displayResults (map fst $ runInterleaving (s (s (s (s (s z))))) (dual additionEx3) :: [SExp Int])
+  displayResults (map fst $ runInterleaving Nothing (s (s (s (s (s z))))) (dual additionEx3) :: [SExp Int])
   
   putStrLn "\nDone."

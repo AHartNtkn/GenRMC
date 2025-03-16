@@ -146,3 +146,228 @@ testSearch =
         ]
       ]
     ]
+
+
+-- Id search based on test cases by computing backwards
+backSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+backSearch =
+  Ex $ \dummy -> Ex $ \prog ->
+    compAll [
+      andAll [
+        compAll [
+          Map (var dummy) l,
+          dual treeCalcApp,
+          Map (f (var prog) l) (var prog)
+        ],
+        compAll [
+          Map (var dummy) (b l),
+          dual treeCalcApp,
+          Map (f (var prog) (b l)) (var prog)
+        ],
+        compAll [
+          Map (var dummy) (f l l),
+          dual treeCalcApp,
+          Map (f (var prog) (f l l)) (var prog)
+        ],
+        compAll [
+          Map (var dummy) (b (b l)),
+          dual treeCalcApp,
+          Map (f (var prog) (b (b l))) (var prog)
+        ]
+      ]
+    ]
+
+-- Search for a successor function
+succSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+succSearch =
+  Ex $ \dummy -> Ex $ \prog ->
+    andAll [
+      compAll [
+        Map (var dummy) (f (var prog) l),
+        treeCalcApp,
+        Map (b l) (var prog)
+      ],
+      compAll [
+        Map (var dummy) (f (var prog) (b l)),
+        treeCalcApp,
+        Map (f l l) (var prog)
+      ],
+      compAll [
+        Map (var dummy) (f (var prog) (f l l)),
+        treeCalcApp,
+        Map (b (b l)) (var prog)
+      ],
+      compAll [
+        Map (var dummy) (f (var prog) (b (b l))),
+        treeCalcApp,
+        Map (f l (b l)) (var prog)
+      ],
+      compAll [
+        Map (var dummy) (f (var prog) (f l (b l))),
+        treeCalcApp,
+        Map (f (b l) l) (var prog)
+      ],
+      compAll [
+        Map (var dummy) (f (var prog) (f (b l) l)),
+        treeCalcApp,
+        Map (b (f l l)) (var prog)
+      ],
+      compAll [
+        Map (var dummy) (f (var prog) (f l (f l l))),
+        treeCalcApp,
+        Map (f (b l) (b l)) (var prog)
+      ],
+      compAll [
+        Map (var dummy) (f (var prog) (f (b l) (b l))),
+        treeCalcApp,
+        Map (f (f l l) l) (var prog)
+      ],
+      compAll [
+        Map (var dummy) (f (var prog) (f (f l l) l)),
+        treeCalcApp,
+        Map (b (b (b l))) (var prog)
+      ]
+    ]
+
+
+sCase :: (Ord n, Enum n) => n -> n -> TreeCalc n -> TreeCalc n -> TreeCalc n -> TreeCalc n -> Prog TreeCalcF n (TreeCalcProp n)
+sCase dummy prog ft gt xt ot = 
+  Ex $ \f' -> Ex $ \fg' -> 
+  compAll [
+    Map (var dummy) (f (var prog) ft),
+    treeCalcApp,
+    Map (var f') (f (var f') gt),
+    treeCalcApp,
+    Map (var fg') (f (var fg') xt),
+    treeCalcApp,
+    Map ot (var prog)
+  ]
+
+sCase2 :: (Ord n, Enum n) => n -> n -> TreeCalc n -> TreeCalc n -> TreeCalc n -> TreeCalc n -> Prog TreeCalcF n (TreeCalcProp n)
+sCase2 dummy prog ft gt xt ot = 
+  Ex $ \f' -> Ex $ \fg' -> 
+  andAll [
+    compAll [
+      Map (var dummy) (f (var prog) ft),
+      treeCalcApp,
+      Map (var f') (f (var f') gt),
+      treeCalcApp,
+      Map (var fg') (f (var fg') xt),
+      treeCalcApp,
+      Map ot (var prog)
+    ],
+    compAll [
+      Map (var dummy) ot,
+      dual treeCalcApp,
+      Map (f (var fg') xt) (var fg'),
+      dual treeCalcApp,
+      Map  (f (var f') gt) (var f'),
+      dual treeCalcApp,
+      Map (f (var prog) ft) (var prog)
+    ]
+  ]
+
+
+-- C combinator search based on test cases
+cSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+cSearch =
+  Ex $ \dummy -> Ex $ \prog ->
+    andAll [
+      sCase dummy prog l l l (f l (f l l)),
+      sCase dummy prog (b l) l l (f (b l) (f l l)),
+      sCase dummy prog (f (f (f l l) l) l) (f l (f l (b (b l)))) (f (f l l) (b (f l l))) l,
+      sCase dummy prog (b (f l l)) (f l (f (f l l) l)) (f l (f (b l) l)) (f (b (f l l)) (f (f l l) l))
+    ]
+
+-- S combinator search based on test cases
+sSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+sSearch =
+  Ex $ \dummy -> Ex $ \prog ->
+    andAll [
+      sCase dummy prog (f (b l) (f (b l) l)) (b l) (f l (f (f l l) l)) (f (f l l) l),
+      sCase dummy prog (f (f (b l) (b l)) (b (b l))) (f (f l (f l l)) l) (f (f l (f l l)) (f l l)) l,
+      sCase dummy prog (f (f (b l) l) l) (f (f l (b l)) (f (b l) l)) (f (b l) (f (f l l) l)) (f (b l) (f (b l) (f (f l l) l))),
+      sCase dummy prog (b (b (b l))) (f l (f (b l) l)) (f l (b (b l))) (b (b l))
+    ]
+
+
+-- S combinator search based on test cases
+dSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+dSearch =
+  Ex $ \dummy -> Ex $ \prog ->
+    andAll [
+      sCase dummy prog (f (f l (b (b l))) l) (f (b l) (b (f l l))) (f (f l (f l l)) (f (b l) l)) (f l l),
+      sCase dummy prog (b (b l)) (f (f (f l l) l) (f l l)) (f (b (f l l)) (b l)) (f l (f (b l) (f l (b l)))),
+      sCase dummy prog (f (f l l) (b (b (b l)))) (f (b (f l l)) (b (b l))) (f (f l (f l l)) (b l)) (f l (f (b (b l)) (f (f l (f l l)) (b l))))
+    ]
+
+kCase :: (Ord n, Enum n) => n -> n -> TreeCalc n -> TreeCalc n -> Prog TreeCalcF n (TreeCalcProp n)
+kCase dummy prog ft xt = 
+  Ex $ \fg' -> 
+  compAll [
+    Map (var dummy) (f (var prog) ft),
+    treeCalcApp,
+    Map (var fg') (f (var fg') xt),
+    treeCalcApp,
+    Map ft (var prog)
+  ]
+
+-- K combinator search based on test cases
+kSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+kSearch =
+  Ex $ \dummy -> Ex $ \prog ->
+    andAll [
+      kCase dummy prog l l,
+      kCase dummy prog (b l) l,
+      kCase dummy prog (f l l) l,
+      kCase dummy prog (b (b l)) l,
+      kCase dummy prog (b (b l)) (b l),
+      kCase dummy prog (f l l) (b l),
+      kCase dummy prog (f l l) (f l l),
+      kCase dummy prog (b (b l)) (f l l),
+      kCase dummy prog (f (f l l) l) (b l),
+      kCase dummy prog (f (f l l) l) (f l l)
+    ]
+
+uCase :: (Ord n, Enum n) => n -> n -> TreeCalc n -> TreeCalc n -> TreeCalc n -> Prog TreeCalcF n (TreeCalcProp n)
+uCase dummy prog ft xt ot = 
+  Ex $ \fg' -> 
+  compAll [
+    Map (var dummy) (f (var prog) ft),
+    treeCalcApp,
+    Map (var fg') (f (var fg') xt),
+    treeCalcApp,
+    Map ot (var prog)
+  ]
+
+uCase2 :: (Ord n, Enum n) => n -> n -> TreeCalc n -> TreeCalc n -> TreeCalc n -> Prog TreeCalcF n (TreeCalcProp n)
+uCase2 dummy prog ft xt ot = 
+  Ex $ \fg' ->
+  andAll [
+    compAll [
+      Map (var dummy) (f (var prog) ft),
+      treeCalcApp,
+      Map (var fg') (f (var fg') xt),
+      treeCalcApp,
+      Map ot (var prog)
+    ],
+    compAll [
+      Map (var dummy) (var prog),
+      dual treeCalcApp,
+      Map (f (var fg') xt) (var fg'),
+      dual treeCalcApp,
+      Map (f (var prog) ft) (var prog)
+    ]
+  ]
+
+uSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+uSearch =
+  Ex $ \dummy -> Ex $ \prog ->
+    andAll [
+      uCase2 dummy prog l l l,
+      uCase2 dummy prog (b l) l l,
+      uCase2 dummy prog (b l) (b l) (b l),
+      uCase2 dummy prog (f l l) (b l) (f l (b l)),
+      uCase2 dummy prog l (f l l) (f l l),
+      uCase2 dummy prog (f (b l) l) (f l l) l
+    ]

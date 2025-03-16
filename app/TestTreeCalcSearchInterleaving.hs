@@ -27,6 +27,19 @@ main :: IO ()
 main = do
   putStrLn "\nTesting Tree Calculus Search with Interleaving:"
   putStrLn "\nSearching for identity function using test cases:"
-  -- Take only the first result but show full information including constraints
-  displayFullResults (take 1 $ runDFS l testSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+  displayFullResults (take 1 $ runDFS Nothing l testSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+  putStrLn "\nSearching for identity function using test cases backwards:"
+  displayFullResults (take 1 $ runInterleaving Nothing l backSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for the successor function using test cases:"
+--  displayFullResults (take 1 $ runInterleaving l succSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for S combinator:"
+--  displayFullResults (take 1 $ runInterleaving l sSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for D combinator:"
+--  displayFullResults (take 1 $ runInterleaving l dSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for C combinator:"
+--  displayFullResults (take 1 $ runInterleaving l cSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for K combinator:"
+--  displayFullResults (take 1 $ runInterleaving l kSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for U combinator:"
+--  displayFullResults (take 1 $ runInterleaving Nothing l uSearch :: [(TreeCalc Int, TreeCalcProp Int)])
   putStrLn "\nTests completed." 
