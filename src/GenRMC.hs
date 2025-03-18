@@ -44,7 +44,6 @@ module GenRMC
   , Unifiable(..)
   , Equation(..)
   , UnifyProp(..)
-  , orientEquations
   ) where
 
 import GenRMC.Types

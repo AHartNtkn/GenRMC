@@ -131,5 +131,5 @@ substProg subst = go
 substData :: (Ord n, Functor f) => Map n (Free f n) -> Free f n -> Free f n
 substData subst = go
   where
-    go (Pure n) = fromMaybe (Pure n) (Map.lookup n subst)
+    go (Pure n) = maybe (Pure n) go (Map.lookup n subst)
     go (Free f) = Free (fmap go f)

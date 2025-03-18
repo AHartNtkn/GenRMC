@@ -3,6 +3,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE LambdaCase #-}
+
 module GenRMC.Examples.TreeCalculusNormed where
 
 import Control.Monad.Free
@@ -11,10 +13,11 @@ import GenRMC.Unify.FirstOrder
 import Data.Functor.Classes (Eq1, liftEq)
 
 -- | Tree calculus functor
-data TreeCalcF x = L | B x | F x x
+data TreeCalcF x = C Int | L | B x | F x x
   deriving (Eq, Functor, Foldable, Show)
 
 instance Eq1 TreeCalcF where
+  liftEq eq (C n) (C n') = n == n'
   liftEq eq L L = True
   liftEq eq (B x) (B y) = eq x y
   liftEq eq (F x y) (F x' y') = eq x x' && eq y y'
@@ -27,10 +30,14 @@ type TreeCalcProp n = UnifyProp TreeCalcF n
 
 -- | Make TreeCalcF an instance of Unifiable
 instance Unifiable TreeCalcF n where
+  zipMatch (C n) (C n') = [[] | n == n']
   zipMatch L L = [[]]
   zipMatch (B x) (B y) = [[Equation x y]]
   zipMatch (F x y) (F x' y') = [[Equation x x', Equation y y']]
   zipMatch _ _ = []
+
+c :: Int -> TreeCalc n
+c n = Free (C n)
 
 l :: TreeCalc n
 l = Free L
@@ -50,9 +57,18 @@ type TreeCalcEquation n = Equation TreeCalcF n
 
 prettyPrintTreeCalc :: Show n => TreeCalc n -> String
 prettyPrintTreeCalc (Pure n) = show n
+prettyPrintTreeCalc (Free (C n)) = "C_" ++ show n
 prettyPrintTreeCalc (Free L) = "L"
 prettyPrintTreeCalc (Free (B x)) = "B[" ++ prettyPrintTreeCalc x ++ "]"
 prettyPrintTreeCalc (Free (F x y)) = "F[" ++ prettyPrintTreeCalc x ++ ", " ++ prettyPrintTreeCalc y ++ "]"
+
+maxDepth :: Int -> Pred TreeCalcF
+maxDepth i | i > 0 = Pred $ \case
+  L -> [[]]
+  B x -> [[(maxDepth (i - 1), x)]]
+  F x y -> [[(maxDepth (i - 1), x), (maxDepth (i - 1), y)]]
+  C _ -> []
+maxDepth _ = Pred $ const []
 
 -- | Tree calculus evaluator
 -- Implements reduction rules for the tree calculus
@@ -175,6 +191,25 @@ backSearch =
           Map (f (var prog) (b (b l))) (var prog)
         ]
       ]
+    ]
+
+-- Predicate to test if a universal variable is present
+noUniversal :: Pred TreeCalcF
+noUniversal = Pred $ \case
+  L -> [[]]
+  B x -> [[(noUniversal, x)]]
+  F x y -> [[(noUniversal, x), (noUniversal, y)]]
+  C _ -> []
+
+-- Identity search using universal quantification
+idSearchU :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+idSearchU =
+  Ex $ \dummy -> Ex $ \prog ->
+    compAll [
+      Cstr (UnifyProp [] [(noUniversal, var prog)]),
+      Map (var dummy) (f (var prog) (c 0)),
+      treeCalcApp,
+      Map (c 0) (var prog)
     ]
 
 -- Search for a successor function
