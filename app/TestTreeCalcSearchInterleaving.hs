@@ -26,14 +26,20 @@ displayFullResults results = do
 main :: IO ()
 main = do
   putStrLn "\nTesting Tree Calculus Search with Interleaving:"
-  putStrLn "\nSearching for identity function using test cases:"
-  displayFullResults (take 1 $ runDFS Nothing l testSearch :: [(TreeCalc Int, TreeCalcProp Int)])
-  putStrLn "\nSearching for identity function using test cases backwards:"
-  displayFullResults (take 1 $ runInterleaving Nothing l backSearch :: [(TreeCalc Int, TreeCalcProp Int)])
-  putStrLn "\nSearching for identity function using universal quantification:"
-  displayFullResults (take 1 $ runDFS Nothing l idSearchU :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for identity function using test cases:"
+--  displayFullResults (take 1 $ runDFS Nothing l testSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for identity function using test cases backwards:"
+--  displayFullResults (take 1 $ runInterleaving Nothing l backSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for identity function using universal quantification:"
+--  displayFullResults (take 1 $ runDFS Nothing l idSearchU :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for f such that f x y = F[x, y]:"
+--  displayFullResults (take 1 $ runInterleaving Nothing l stage1Search :: [(TreeCalc Int, TreeCalcProp Int)])
+--  putStrLn "\nSearching for f such that f x y z = F[F[x, y], z]:"
+--  displayFullResults (take 1 $ runInterleaving Nothing l stageSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+  putStrLn "\nSearching for f such that f F[F[x, y], z] = F[x, F[y, z]]:"
+  displayFullResults (take 1 $ runDFS (Just 1000) l assocSearch :: [(TreeCalc Int, TreeCalcProp Int)])
 --  putStrLn "\nSearching for the successor function using test cases:"
---  displayFullResults (take 1 $ runInterleaving l succSearch :: [(TreeCalc Int, TreeCalcProp Int)])
+--  displayFullResults (take 1 $ runInterleaving Nothing l succSearch :: [(TreeCalc Int, TreeCalcProp Int)])
 --  putStrLn "\nSearching for S combinator:"
 --  displayFullResults (take 1 $ runInterleaving Nothing l sSearch :: [(TreeCalc Int, TreeCalcProp Int)])
 --  putStrLn "\nSearching for D combinator:"

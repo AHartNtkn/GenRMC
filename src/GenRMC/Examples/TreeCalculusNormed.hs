@@ -75,15 +75,15 @@ maxDepth _ = Pred $ const []
 treeCalcApp :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
 treeCalcApp = Fp $ \self ->
   orAll [
-    -- app[L, z_] := F[L, z]
+    -- app[L, z_] := B[z]
     Ex $ \z -> 
       Map (f l (var z))
-          (f l (var z)),
+          (b (var z)),
     
-    -- app[B[y_], z_] := F[B[y], z]
+    -- app[B[y_], z_] := F[y, z]
     Ex $ \y -> Ex $ \z -> 
       Map (f (b (var y)) (var z)) 
-          (f (b (var y)) (var z)),
+          (f (var y) (var z)),
 
     -- app[F[L, y_], z_] := y
     Ex $ \y -> Ex $ \z -> 
@@ -202,6 +202,7 @@ noUniversal = Pred $ \case
   C _ -> []
 
 -- Identity search using universal quantification
+-- Found: F[B[B[L]], L]
 idSearchU :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
 idSearchU =
   Ex $ \dummy -> Ex $ \prog ->
@@ -210,6 +211,49 @@ idSearchU =
       Map (var dummy) (f (var prog) (c 0)),
       treeCalcApp,
       Map (c 0) (var prog)
+    ]
+
+-- Search of an f such that f x y = F[x, y]
+-- Found: L
+stage1Search :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+stage1Search =
+  Ex $ \dummy -> Ex $ \prog ->
+    Ex $ \c0' ->
+    compAll [
+      Cstr (UnifyProp [] [(noUniversal, var prog)]),
+      Map (var dummy) (f (var prog) (c 0)),
+      treeCalcApp,
+      Map (var c0') (f (var c0') (c 1)),
+      treeCalcApp,
+      Map (f (c 0) (c 1)) (var prog)
+    ]
+
+-- Search of an f such that f x y z = F[F[x, y], z]
+-- Found: F[B[F[L, B[B[F[L, L]]]]], L]
+stageSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+stageSearch =
+  Ex $ \dummy -> Ex $ \prog ->
+    exN 2 $ \[c0', c1'] ->
+    compAll [
+      Cstr (UnifyProp [] [(noUniversal, var prog)]),
+      Map (var dummy) (f (var prog) (c 0)),
+      treeCalcApp,
+      Map (var c0') (f (var c0') (c 1)),
+      treeCalcApp,
+      Map (var c1') (f (var c1') (c 2)),
+      treeCalcApp,
+      Map (f (f (c 0) (c 1)) (c 2)) (var prog)
+    ]
+
+-- Search for f such that f F[F[x, y], z] = F[x, F[y, z]]
+assocSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
+assocSearch =
+  Ex $ \dummy -> Ex $ \prog ->
+    compAll [
+      Cstr (UnifyProp [] [(noUniversal, var prog)]),
+      Map (var dummy) (f (var prog) (f (f (c 0) (c 1)) (c 2))),
+      treeCalcApp,
+      Map (f (c 0) (f (c 1) (c 2))) (var prog)
     ]
 
 -- Search for a successor function
@@ -319,21 +363,24 @@ sSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
 sSearch =
   Ex $ \dummy -> Ex $ \prog ->
     andAll [
-      sCase dummy prog (f (b l) (f (b l) l)) (b l) (f l (f (f l l) l)) (f (f l l) l),
-      sCase dummy prog (f (f (b l) (b l)) (b (b l))) (f (f l (f l l)) l) (f (f l (f l l)) (f l l)) l,
-      sCase dummy prog (f (f (b l) l) l) (f (f l (b l)) (f (b l) l)) (f (b l) (f (f l l) l)) (f (b l) (f (b l) (f (f l l) l))),
-      sCase dummy prog (b (b (b l))) (f l (f (b l) l)) (f l (b (b l))) (b (b l))
+      sCase dummy prog l l l (f l (b l)),
+      sCase dummy prog (f (b l) (b l)) (f l (b l)) l (f l l),
+      sCase dummy prog (b (b (b l))) (f l (f l l)) (f (b l) (b l)) (f l l),
+      sCase dummy prog (f l l) (f (b l) l) (f (b l) l) (b (f (f (b l) l) (b (f (b l) l)))),
+      sCase dummy prog l (f l (b l)) (f l (f l l)) (f (f l (f l l)) (b l))
     ]
 
 
--- S combinator search based on test cases
+-- D combinator search based on test cases
 dSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
 dSearch =
   Ex $ \dummy -> Ex $ \prog ->
     andAll [
-      sCase dummy prog (f (f l (b (b l))) l) (f (b l) (b (f l l))) (f (f l (f l l)) (f (b l) l)) (f l l),
-      sCase dummy prog (b (b l)) (f (f (f l l) l) (f l l)) (f (b (f l l)) (b l)) (f l (f (b l) (f l (b l)))),
-      sCase dummy prog (f (f l l) (b (b (b l)))) (f (b (f l l)) (b (b l))) (f (f l (f l l)) (b l)) (f l (f (b (b l)) (f (f l (f l l)) (b l))))
+      sCase dummy prog l l l (f l (b l)),
+      sCase dummy prog (f l (b l)) (f (b l) (b l)) l (f l l),
+      sCase dummy prog (f l (f l l)) (b (b (b l))) (f (b l) (b l)) (f l l),
+      sCase dummy prog (f (b l) l) (f l l) (f (b l) l) (b (f (f (b l) l) (b (f (b l) l)))),
+      sCase dummy prog (f l (b l)) l (f l (f l l)) (f (f l (f l l)) (b l))
     ]
 
 kCase :: (Ord n, Enum n) => n -> n -> TreeCalc n -> TreeCalc n -> Prog TreeCalcF n (TreeCalcProp n)
@@ -347,21 +394,14 @@ kCase dummy prog ft xt =
     Map ft (var prog)
   ]
 
--- K combinator search based on test cases
+-- K combinator search
+-- Found: B[L]
 kSearch :: (Ord n, Enum n) => Prog TreeCalcF n (TreeCalcProp n)
 kSearch =
   Ex $ \dummy -> Ex $ \prog ->
-    andAll [
-      kCase dummy prog l l,
-      kCase dummy prog (b l) l,
-      kCase dummy prog (f l l) l,
-      kCase dummy prog (b (b l)) l,
-      kCase dummy prog (b (b l)) (b l),
-      kCase dummy prog (f l l) (b l),
-      kCase dummy prog (f l l) (f l l),
-      kCase dummy prog (b (b l)) (f l l),
-      kCase dummy prog (f (f l l) l) (b l),
-      kCase dummy prog (f (f l l) l) (f l l)
+    compAll [
+      Cstr (UnifyProp [] [(noUniversal, var prog)]),
+      kCase dummy prog (c 0) (c 1)
     ]
 
 uCase :: (Ord n, Enum n) => n -> n -> TreeCalc n -> TreeCalc n -> TreeCalc n -> Prog TreeCalcF n (TreeCalcProp n)
