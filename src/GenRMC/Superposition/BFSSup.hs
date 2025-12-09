@@ -13,7 +13,7 @@ import Control.Monad.Free
 import GenRMC.Types
 import GenRMC.Core
 
--- | Depth-first search implementation of Sup
+-- | Breadth-first search implementation of Sup
 -- Each state keeps track of its own next variable counter and step counter
 newtype BFSSup f n p = BFSSup { unBFSSup :: [(Maybe Int, n, Free f n, [Prog f n p], p)] }
 
@@ -30,7 +30,7 @@ instance Sup f n p (BFSSup f n p) where
 
   singleton counter nextSym d ps cs = BFSSup [(counter, nextSym, d, ps, cs)]
   
-  -- Search strategy is defined here. In this case, we are doing a breadth-first search
+  -- Search strategy
   fullStep _ (BFSSup []) = (Nothing, BFSSup [])
   fullStep _ (BFSSup ((_, _, datum, [], cs):rest)) = 
     (Just (datum, cs), BFSSup rest)
